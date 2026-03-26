@@ -62,6 +62,5 @@ export HF_ENDPOINT=https://hf-mirror.com
 ## Brand assets
 
 - `assets/brand-logo-horizontal.png`  
-- `assets/brand-logo.svg`  
 
 [中文版 README](./README.md)

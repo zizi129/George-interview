@@ -38,3 +38,5 @@ temp*.aac
 results/
 livetalking.log
 silence_15s.mp3
+# 本地大包，勿提交（GitHub 单文件 100MB 限制）
+upload.zip
