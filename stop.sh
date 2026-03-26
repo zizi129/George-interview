@@ -30,8 +30,7 @@ if [[ -f ".env" ]]; then
   done < ".env"
 fi
 
-#PORT_TO_CHECK="${LISTEN_PORT:-8010}"
-PORT_TO_CHECK="5000"
+PORT_TO_CHECK="${LISTEN_PORT:-5001}"
 
 if [[ "${1:-}" == "--listenport" && -n "${2:-}" ]]; then
   PORT_TO_CHECK="$2"

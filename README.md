@@ -368,6 +368,87 @@ git push origin --delete feat-your-topic
 
 ---
 
+## 在新服务器上部署
+
+如果你在一台全新的服务器上部署，除了按上面的步骤完成**环境配置**、**资源下载与解压**之外，还需要配置 Nginx 反向代理和 HTTPS。
+
+### 1. 配置 `.env` 端口
+
+`.env` 中的 `LISTEN_PORT` 控制应用监听端口，改为 `5000`：
+
+```text
+LISTEN_PORT=5000
+```
+
+### 2. 安装 Nginx
+
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx
+```
+
+### 3. 准备 SSL 证书
+
+将你域名的证书文件放到项目 `ssl/` 目录下：
+
+```text
+George-interview/ssl/
+├── your-domain.pem     # 证书
+└── your-domain.key     # 私钥
+```
+
+> 如果还没有证书，可通过云服务商（阿里云、腾讯云等）免费申请，或使用 [Let's Encrypt](https://letsencrypt.org/)。
+
+### 4. 配置 Nginx 反向代理
+
+创建配置文件，外部监听 `8011`，代理到内部 `5000`：
+
+```bash
+sudo tee /etc/nginx/sites-enabled/george-interview > /dev/null << 'EOF'
+server {
+    listen 8011 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate     /path/to/George-interview/ssl/your-domain.pem;
+    ssl_certificate_key /path/to/George-interview/ssl/your-domain.key;
+
+    ssl_session_timeout 5m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    ssl_prefer_server_ciphers on;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 600s;
+    }
+}
+EOF
+```
+
+> 请将 `your-domain.com` 和证书路径替换为你自己的实际值。
+
+### 5. 重启 Nginx 并启动服务
+
+```bash
+sudo nginx -t            # 检查配置是否正确
+sudo service nginx restart
+cd George-interview
+conda activate nerfstream
+bash start.sh
+```
+
+### 6. 访问
+
+浏览器打开 `https://your-domain.com:8011/interview.html`（替换为你自己的域名）。
+
+---
+
 ## 开源许可
 
 本项目在 **Apache License 2.0** 下分发，见仓库根目录 `LICENSE`。部分底层实现衍生自社区开源数字人相关代码；你在分发与修改时，请遵守许可证中关于保留声明与归属的要求。

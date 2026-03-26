@@ -1045,10 +1045,7 @@ if __name__ == '__main__':
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(runner.setup())
-        # 对外访问：监听所有网卡 + 与 LISTEN_PORT / --listenport 一致（默认 8010）
-        # 若前面有 Nginx 反代且希望本进程不对公网暴露，可改为：
-        # site = web.TCPSite(runner, '127.0.0.1', opt.listenport)
-        site = web.TCPSite(runner, '127.0.0.1', 5000)
+        site = web.TCPSite(runner, '127.0.0.1', opt.listenport)
         loop.run_until_complete(site.start())
         if opt.transport=='rtcpush':
             for k in range(opt.max_session):
