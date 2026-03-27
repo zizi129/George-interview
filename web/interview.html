@@ -26,8 +26,8 @@
             --danger: #e35b74;
             --shadow: 0 20px 56px rgba(34, 45, 84, 0.08);
             --shadow-soft: 0 10px 28px rgba(34, 45, 84, 0.06);
-            --radius: 28px;
-            --radius-md: 22px;
+            --radius: 30px;
+            --radius-md: 24px;
             --radius-sm: 16px;
         }
 
@@ -41,14 +41,64 @@
             min-height: 100%;
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(90, 86, 244, 0.08), transparent 34%),
-                radial-gradient(circle at 92% 16%, rgba(114, 168, 255, 0.08), transparent 24%),
-                linear-gradient(180deg, #fbfbfe 0%, #f6f7fb 100%);
+                radial-gradient(circle at 10% 8%, rgba(90, 86, 244, 0.09), transparent 38%),
+                radial-gradient(circle at 92% 14%, rgba(114, 168, 255, 0.09), transparent 28%),
+                radial-gradient(circle at 50% 90%, rgba(139, 125, 255, 0.04), transparent 40%),
+                linear-gradient(180deg, #fbfbfe 0%, #f5f6fb 100%);
             color: var(--text);
         }
 
         body {
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.5;
+        }
+
+        body::before {
+            width: 520px;
+            height: 520px;
+            top: -120px;
+            left: -80px;
+            background: radial-gradient(circle, rgba(90, 86, 244, 0.15), transparent 70%);
+            animation: orbFloat1 18s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 440px;
+            height: 440px;
+            bottom: -60px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(122, 180, 255, 0.14), transparent 70%);
+            animation: orbFloat2 22s ease-in-out infinite;
+        }
+
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(60px, 40px) scale(1.08); }
+            66% { transform: translate(-30px, 80px) scale(0.95); }
+        }
+
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-50px, -30px) scale(1.05); }
+            66% { transform: translate(40px, -60px) scale(0.92); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body::before, body::after {
+                animation: none;
+            }
         }
 
         button,
@@ -74,7 +124,7 @@
 
         .center-screen {
             display: grid;
-            align-items: center;
+            align-content: center;
         }
 
         .setup-shell,
@@ -82,6 +132,102 @@
             display: grid;
             gap: 30px;
             width: 100%;
+        }
+
+        .hero-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 6px;
+        }
+
+        .hero-brand-logo {
+            height: 78px;
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(90, 86, 244, 0.08));
+        }
+
+        .hero-account-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-banner {
+            text-align: center;
+            padding: 4px 20px 0;
+            animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .hero-badge-line {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .hero-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--accent-strong);
+            background: rgba(90, 86, 244, 0.07);
+            border: 1px solid rgba(90, 86, 244, 0.13);
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-heading {
+            margin: 0 auto 16px;
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            max-width: 680px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #5a56f4 0%, #7ab4ff 50%, #a78bfa 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+        }
+
+        .hero-desc {
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 720px) {
+            .hero-heading {
+                font-size: 32px;
+            }
+            .hero-desc {
+                font-size: 12px;
+                white-space: normal;
+            }
+            .hero-badge-line {
+                flex-wrap: wrap;
+            }
+            .hero-brand-logo {
+                height: 60px;
+            }
         }
 
         .page-header {
@@ -115,11 +261,15 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 12px;
+            padding: 10px 18px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid rgba(223, 228, 240, 0.95);
-            box-shadow: var(--shadow-soft);
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(223, 228, 240, 0.6);
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
         }
 
         .stepper-item {
@@ -510,8 +660,8 @@
         .setup-card {
             display: grid;
             grid-template-columns: minmax(0, 1.24fr) minmax(360px, 0.86fr);
-            gap: 24px;
-            width: min(100%, 1240px);
+            gap: 28px;
+            width: min(100%, 1260px);
         }
 
         .setup-card.preview-hidden {
@@ -525,15 +675,26 @@
         .video-panel,
         .side-panel,
         .modal-card {
-            background: var(--card);
-            border: 1px solid rgba(230, 233, 242, 0.95);
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(230, 233, 244, 0.6);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(14px);
+            box-shadow:
+                var(--shadow),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
         }
 
         .setup-main {
-            padding: 34px 34px 30px;
+            padding: 38px 38px 34px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+
+        .setup-main:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 28px 64px rgba(34, 45, 84, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
         }
 
         .setup-preview-card {
@@ -542,12 +703,22 @@
             display: grid;
             grid-template-rows: auto 1fr;
             gap: 16px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+
+        .setup-preview-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 28px 64px rgba(34, 45, 84, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
         }
 
         .setup-cta-panel {
             display: flex;
             align-items: center;
-            margin-top: -4px;
+            justify-content: center;
+            margin-top: 12px;
+            padding-top: 16px;
         }
 
         .setup-cta-panel.is-ready {
@@ -570,9 +741,9 @@
         }
 
         .setup-cta-title {
-            font-size: 24px;
-            line-height: 1.2;
-            font-weight: 700;
+            font-size: 26px;
+            line-height: 1.18;
+            font-weight: 800;
             color: var(--text);
         }
 
@@ -584,19 +755,55 @@
         }
 
         .title {
-            margin: 12px 0 10px;
-            font-size: 34px;
-            line-height: 1.08;
-            font-weight: 700;
-            letter-spacing: -0.03em;
+            margin: 14px 0 12px;
+            font-size: 38px;
+            line-height: 1.06;
+            font-weight: 800;
+            letter-spacing: -0.035em;
         }
 
         .subtitle {
-            margin: 0 0 24px;
+            margin: 0 0 28px;
             color: var(--muted);
-            font-size: 15px;
+            font-size: 15.5px;
             line-height: 1.7;
-            max-width: 520px;
+            max-width: 540px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 6px;
+        }
+
+        .form-group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .form-group-icon {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(90, 86, 244, 0.1), rgba(122, 180, 255, 0.12));
+            color: var(--accent-strong);
+            flex-shrink: 0;
+        }
+
+        .form-group-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .form-divider {
+            height: 1px;
+            margin: 8px 0;
+            background: linear-gradient(90deg, transparent, rgba(90, 86, 244, 0.1), rgba(214, 219, 234, 0.5), rgba(90, 86, 244, 0.1), transparent);
         }
 
         .field {
@@ -631,8 +838,8 @@
 
         .text-input:focus,
         .answer-input:focus {
-            border-color: rgba(90, 86, 244, 0.42);
-            box-shadow: 0 0 0 4px rgba(90, 86, 244, 0.1);
+            border-color: rgba(90, 86, 244, 0.44);
+            box-shadow: 0 0 0 4px rgba(90, 86, 244, 0.1), 0 4px 16px rgba(90, 86, 244, 0.06);
             background: #fff;
         }
 
@@ -657,13 +864,15 @@
         .interviewer-card,
         .mode-card {
             appearance: none;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(224, 228, 242, 0.7);
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             color: var(--text);
             border-radius: 22px;
             cursor: pointer;
             text-align: left;
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.22s ease, background 0.2s ease;
         }
 
         .interviewer-card {
@@ -673,9 +882,9 @@
 
         .interviewer-card:hover,
         .mode-card:hover {
-            transform: translateY(-1px);
-            border-color: rgba(90, 86, 244, 0.32);
-            box-shadow: 0 12px 24px rgba(27, 34, 68, 0.06);
+            transform: translateY(-3px);
+            border-color: rgba(90, 86, 244, 0.36);
+            box-shadow: 0 16px 32px rgba(27, 34, 68, 0.08);
         }
 
         .interviewer-card.active,
@@ -871,6 +1080,39 @@
             cursor: not-allowed;
         }
 
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #setup-screen .setup-main,
+        #setup-screen .setup-preview-card {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        #setup-screen .setup-preview-card {
+            animation-delay: 0.08s;
+        }
+
+        .loading-card {
+            animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #setup-screen .setup-main,
+            #setup-screen .setup-preview-card,
+            .loading-card,
+            .hero-banner {
+                animation: none;
+            }
+        }
+
         @keyframes floatBreath {
             0%,
             100% {
@@ -911,15 +1153,21 @@
         }
 
         .hero-cta-btn {
-            min-width: 220px;
-            padding: 16px 30px;
+            min-width: 240px;
+            padding: 18px 36px;
             border-radius: 999px;
-            background: linear-gradient(135deg, #645bff 0%, #78b7ff 100%);
-            box-shadow: 0 18px 36px rgba(99, 100, 255, 0.24);
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #5a56f4 0%, #7b6fff 40%, #7ab4ff 100%);
+            background-size: 200% auto;
+            box-shadow: 0 18px 40px rgba(90, 86, 244, 0.26);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, background-position 0.4s ease;
         }
 
         .hero-cta-btn:hover {
-            box-shadow: 0 22px 44px rgba(99, 100, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 26px 52px rgba(90, 86, 244, 0.34);
+            background-position: right center;
         }
 
         .setup-cta-panel.is-ready .hero-cta-btn {
@@ -931,8 +1179,17 @@
         }
 
         .finish-btn {
-            min-width: 210px;
-            padding: 14px 20px;
+            min-width: 200px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #e35b74 0%, #ff7e9a 100%);
+            box-shadow: 0 10px 24px rgba(227, 91, 116, 0.18);
+        }
+
+        .finish-btn:hover {
+            background: linear-gradient(135deg, #d14e68 0%, #f97090 100%);
+            box-shadow: 0 14px 32px rgba(227, 91, 116, 0.24);
         }
 
         @keyframes pulseGlow {
@@ -967,7 +1224,7 @@
         .danger-btn:hover,
         .voice-btn:hover,
         .finish-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
         .primary-btn:disabled,
@@ -990,13 +1247,35 @@
 
         .mode-card {
             padding: 18px 16px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto auto;
+            column-gap: 14px;
+            row-gap: 4px;
+            align-items: center;
+        }
+
+        .mode-icon {
+            grid-row: 1 / -1;
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(90, 86, 244, 0.08), rgba(122, 180, 255, 0.1));
+            color: var(--accent-strong);
+            transition: background 0.2s ease;
+        }
+
+        .mode-card.active .mode-icon {
+            background: linear-gradient(135deg, rgba(90, 86, 244, 0.16), rgba(122, 180, 255, 0.18));
         }
 
         .mode-title {
             display: block;
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 6px;
+            align-self: end;
         }
 
         .mode-desc {
@@ -1004,6 +1283,7 @@
             color: var(--muted);
             font-size: 13px;
             line-height: 1.55;
+            align-self: start;
         }
 
         .resume-status {
@@ -1393,8 +1673,8 @@
 
         .loading-card {
             width: 100%;
-            max-width: 620px;
-            padding: 34px;
+            max-width: 640px;
+            padding: 40px 38px;
             text-align: center;
         }
 
@@ -1407,13 +1687,15 @@
         }
 
         .loader-orb {
-            width: 84px;
-            height: 84px;
-            margin: 6px auto 22px;
-            border-radius: 26px;
-            background: linear-gradient(180deg, rgba(90, 86, 244, 0.12), rgba(90, 86, 244, 0.06));
+            width: 88px;
+            height: 88px;
+            margin: 6px auto 24px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(90, 86, 244, 0.14), rgba(122, 180, 255, 0.1));
             position: relative;
-            box-shadow: inset 0 0 0 1px rgba(90, 86, 244, 0.12);
+            box-shadow:
+                inset 0 0 0 1px rgba(90, 86, 244, 0.12),
+                0 0 60px rgba(90, 86, 244, 0.1);
         }
 
         .loader-orb::before,
@@ -1612,15 +1894,24 @@
 
         .topbar {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             gap: 18px;
-            padding: 4px 0 10px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(230, 233, 244, 0.55);
+            box-shadow: 0 8px 32px rgba(34, 45, 84, 0.06);
         }
 
         .topbar-main {
-            display: grid;
-            gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+            flex-wrap: wrap;
         }
 
         .topbar-brand {
@@ -1630,7 +1921,7 @@
         }
 
         .topbar-brand .brand-logo {
-            height: 52px;
+            height: 40px;
         }
 
         .exit-card .brand {
@@ -1722,9 +2013,9 @@
 
         .interview-grid {
             display: grid;
-            grid-template-columns: minmax(0, 2.05fr) minmax(300px, 380px);
+            grid-template-columns: minmax(0, 2.4fr) minmax(320px, 400px);
             gap: 20px;
-            align-items: start;
+            align-items: stretch;
             min-height: calc(100vh - 180px);
         }
 
@@ -1734,9 +2025,12 @@
         }
 
         .video-panel {
-            padding: 20px;
+            padding: 18px;
             position: sticky;
             top: 8px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 14px;
         }
 
         .video-panel-head {
@@ -1764,14 +2058,18 @@
             display: grid;
             place-items: center;
             width: 100%;
-            min-height: clamp(240px, 38vh, 520px);
+            min-height: clamp(280px, 42vh, 600px);
             background:
-                radial-gradient(circle at center, rgba(90, 86, 244, 0.16), rgba(90, 86, 244, 0.02) 42%, rgba(241, 243, 251, 0.94) 72%),
-                linear-gradient(180deg, #f4f6fc 0%, #eef1f8 100%);
+                radial-gradient(ellipse 60% 50% at 50% 40%, rgba(90, 86, 244, 0.14), transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(122, 180, 255, 0.08), transparent 50%),
+                linear-gradient(180deg, #1d2236 0%, #2a2f4a 50%, #1d2236 100%);
             border-radius: 24px;
             overflow: hidden;
             aspect-ratio: 16 / 9;
-            border: 1px solid rgba(223, 228, 240, 0.92);
+            border: 1px solid rgba(90, 86, 244, 0.12);
+            box-shadow:
+                0 0 80px rgba(90, 86, 244, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         #video {
@@ -1904,14 +2202,15 @@
         }
 
         .message-item.user .message-bubble {
-            background: linear-gradient(135deg, rgba(90, 86, 244, 0.96), rgba(109, 101, 255, 0.96));
+            background: linear-gradient(135deg, #5a56f4 0%, #7b6fff 50%, #7ab4ff 100%);
             color: white;
-            box-shadow: 0 12px 26px rgba(90, 86, 244, 0.16);
+            box-shadow: 0 12px 26px rgba(90, 86, 244, 0.18);
         }
 
         .answer-panel {
             padding: 0 22px 22px;
             border-top: 1px solid rgba(232, 236, 245, 0.9);
+            background: linear-gradient(180deg, rgba(248, 249, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
         }
 
         .answer-form {
@@ -2053,6 +2352,7 @@
             overscroll-behavior: contain;
             scrollbar-width: thin;
             scroll-behavior: smooth;
+            animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .modal-card::-webkit-scrollbar {
@@ -2152,10 +2452,13 @@
         }
 
         .score-value {
-            font-size: 64px;
+            font-size: 68px;
             font-weight: 800;
             line-height: 1;
-            color: var(--text);
+            background: linear-gradient(135deg, var(--accent) 0%, #7ab4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .recommendation {
@@ -2299,6 +2602,16 @@
             .side-panel {
                 max-height: none;
             }
+
+            .topbar {
+                border-radius: var(--radius);
+                flex-wrap: wrap;
+                padding: 12px 16px;
+            }
+
+            .hero-heading {
+                font-size: 36px;
+            }
         }
 
         @media (max-width: 720px) {
@@ -2310,6 +2623,12 @@
             .panel-header {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .topbar {
+                border-radius: var(--radius-md);
+                padding: 14px;
+                gap: 12px;
             }
 
             .setup-main,
@@ -2341,6 +2660,10 @@
 
             .title {
                 font-size: 28px;
+            }
+
+            .hero-heading br {
+                display: none;
             }
 
             .brand-logo {
@@ -2382,36 +2705,11 @@
     <div class="app-shell">
         <section id="setup-screen" class="screen center-screen">
             <div class="setup-shell">
-                <div class="page-header">
-                    <div class="brand">
-                        <img class="brand-logo" src="/brand-logo-horizontal-clean.png" alt="乔治面试">
+                <div class="hero-topbar">
+                    <div class="hero-brand">
+                        <img class="hero-brand-logo" src="/brand-logo-horizontal-clean.png" alt="乔治面试">
                     </div>
-                    <nav class="stepper" aria-label="面试流程">
-                        <div class="stepper-item is-active" aria-current="step">
-                            <span class="stepper-marker">1</span>
-                            <span class="stepper-copy">
-                                <span class="stepper-label">准备</span>
-                                <span class="stepper-desc">完善岗位与简历信息</span>
-                            </span>
-                        </div>
-                        <span class="stepper-line" aria-hidden="true"></span>
-                        <div class="stepper-item">
-                            <span class="stepper-marker">2</span>
-                            <span class="stepper-copy">
-                                <span class="stepper-label">面试</span>
-                                <span class="stepper-desc">实时问答与追问</span>
-                            </span>
-                        </div>
-                        <span class="stepper-line" aria-hidden="true"></span>
-                        <div class="stepper-item">
-                            <span class="stepper-marker">3</span>
-                            <span class="stepper-copy">
-                                <span class="stepper-label">复盘</span>
-                                <span class="stepper-desc">获得能力评估报告</span>
-                            </span>
-                        </div>
-                    </nav>
-                    <div class="header-actions">
+                    <div class="hero-account-bar">
                         <span id="quota-badge" class="quota-badge hidden">剩余 <span id="quota-count">--</span> 次</span>
                         <button id="login-btn" class="account-entry" type="button" aria-label="登录或注册">
                             <span id="login-btn-text">登录 / 注册</span>
@@ -2423,29 +2721,68 @@
                                 <button class="user-menu-item is-danger" id="user-menu-logout" type="button">退出登录</button>
                             </div>
                         </div>
-                        <div class="page-avatar">AI</div>
+                    </div>
+                </div>
+
+                <div class="hero-banner">
+                    <h1 class="hero-heading">
+                        开启你的<br><span class="gradient-text">AI 智能面试</span>之旅
+                    </h1>
+                    <p class="hero-desc">由数字人面试官驱动，模拟真实面试场景，获取即时反馈与专业能力评估报告</p>
+                    <div class="hero-badge-line">
+                        <span class="hero-chip">AI 驱动</span>
+                        <span class="hero-chip">实时交互</span>
+                        <span class="hero-chip">智能评估</span>
                     </div>
                 </div>
 
                 <div id="setup-card" class="setup-card">
                     <div class="setup-main">
-                        <h1 class="title">面试准备</h1>
 
-                        <label class="field">
-                            <span class="field-label">目标岗位</span>
-                            <input id="job-title-input" class="text-input" type="text" placeholder="例如：产品经理" required>
-                        </label>
+                        <div class="form-group">
+                            <div class="form-group-header">
+                                <div class="form-group-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                </div>
+                                <div class="form-group-title">岗位信息</div>
+                            </div>
 
-                        <label class="field">
-                            <span class="field-label">岗位要求 / JD</span>
-                            <textarea id="job-requirements-input" class="text-input textarea-input" placeholder="可粘贴岗位职责、任职要求、技能要求等内容"></textarea>
-                        </label>
+                            <label class="field">
+                                <span class="field-label">目标岗位</span>
+                                <input id="job-title-input" class="text-input" type="text" placeholder="例如：产品经理" required>
+                            </label>
 
-                        <div class="interviewer-card-shell">
-                            <div class="field-label">选择面试官形象</div>
-                            <div id="interviewer-grid" class="interviewer-grid"></div>
-                            <div id="interviewer-notice" class="interviewer-notice"></div>
+                            <label class="field">
+                                <span class="field-label">岗位要求 / JD</span>
+                                <textarea id="job-requirements-input" class="text-input textarea-input" placeholder="可粘贴岗位职责、任职要求、技能要求等内容"></textarea>
+                            </label>
                         </div>
+
+                        <div class="form-divider"></div>
+
+                        <div class="form-group">
+                            <div class="form-group-header">
+                                <div class="form-group-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M5.34 19.5A7.5 7.5 0 0 1 12 15a7.5 7.5 0 0 1 6.66 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                </div>
+                                <div class="form-group-title">面试官形象</div>
+                            </div>
+
+                            <div class="interviewer-card-shell">
+                                <div id="interviewer-grid" class="interviewer-grid"></div>
+                                <div id="interviewer-notice" class="interviewer-notice"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-divider"></div>
+
+                        <div class="form-group">
+                            <div class="form-group-header">
+                                <div class="form-group-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </div>
+                                <div class="form-group-title">简历上传</div>
+                            </div>
 
                         <div class="resume-card">
                             <div class="resume-upload-row">
@@ -2475,14 +2812,29 @@
                             <div id="resume-error" class="error-text resume-error"></div>
                         </div>
 
-                        <div class="field">
-                            <span class="field-label">面试模式</span>
+                        </div>
+
+                        <div class="form-divider"></div>
+
+                        <div class="form-group">
+                            <div class="form-group-header">
+                                <div class="form-group-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </div>
+                                <div class="form-group-title">面试模式</div>
+                            </div>
                             <div class="mode-grid">
                                 <button class="mode-card active" type="button" data-mode="text">
+                                    <span class="mode-icon" aria-hidden="true">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                    </span>
                                     <span class="mode-title">文字语音面试</span>
                                     <span class="mode-desc">键盘输入作答，适合快速演练</span>
                                 </button>
                                 <button class="mode-card" type="button" data-mode="voice">
+                                    <span class="mode-icon" aria-hidden="true">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.8"/><path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18v4m-4 0h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                    </span>
                                     <span class="mode-title">视频语音面试</span>
                                     <span class="mode-desc">与数字人实时语音互动</span>
                                 </button>
