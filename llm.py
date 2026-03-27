@@ -19,6 +19,8 @@ load_env_file()
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 DEFAULT_MODEL = "qwen-plus"
 DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+DEFAULT_INTERVIEW_REVIEW_MODEL = "qwen-turbo-latest"
+DEFAULT_INTERVIEW_REVIEW_START_AFTER_SECONDS = 600.0
 DEFAULT_DIMENSION_SCORE = 55
 DEFAULT_ZH_INTERVIEWER_NAME = "林知远"
 DEFAULT_EN_INTERVIEWER_NAME = "Alex Morgan"
@@ -148,6 +150,21 @@ def _load_prompt(filename: str, fallback: str) -> str:
     if prompt_path.is_file():
         return prompt_path.read_text(encoding="utf-8").strip()
     return fallback.strip()
+
+
+def _get_interview_review_model_name() -> str:
+    configured = str(os.getenv("INTERVIEW_REVIEW_MODEL", "") or "").strip()
+    return configured or DEFAULT_INTERVIEW_REVIEW_MODEL
+
+
+def _get_interview_review_start_after_seconds() -> float:
+    configured = str(os.getenv("INTERVIEW_REVIEW_START_AFTER_SECONDS", "") or "").strip()
+    if not configured:
+        return DEFAULT_INTERVIEW_REVIEW_START_AFTER_SECONDS
+    try:
+        return max(float(configured), 0.0)
+    except ValueError:
+        return DEFAULT_INTERVIEW_REVIEW_START_AFTER_SECONDS
 
 
 def _get_client() -> OpenAI:
@@ -305,13 +322,24 @@ def llm_response(message: str, nerfreal: BaseReal) -> None:
     start = time.perf_counter()
 
     try:
-        progress = review_interview_progress(nerfreal)
+        context = nerfreal.get_interview_context()
+        outline = _normalize_interview_outline(context.get("interview_outline") or {}, context)
+        progress = _normalize_outline_progress(
+            context.get("outline_progress") or build_initial_outline_progress(outline),
+            context,
+            outline,
+            nerfreal.get_user_turn_count(),
+            nerfreal.get_interview_elapsed_seconds(),
+        )
         nerfreal.set_interview_context(outline_progress=progress)
+        review_state = nerfreal.get_outline_progress_review_state()
         logger.info(
-            "interview decision: sessionid=%s decision=%s reason=%s",
+            "interview decision: sessionid=%s decision=%s reason=%s review_turn=%s pending=%s",
             nerfreal.sessionid,
             progress["decision"],
             progress["reason"],
+            review_state.get("completed_turn", 0),
+            review_state.get("pending", False),
         )
 
         if progress["decision"] == "end":
@@ -923,23 +951,41 @@ def _normalize_outline_progress(
 
 def _format_recent_transcript(nerfreal: BaseReal, limit: int = 24) -> str:
     history = nerfreal.get_recent_history(limit=limit)
-    if not history:
+    return _format_recent_transcript_history(history, limit=limit)
+
+
+def _format_recent_transcript_history(history: list[dict[str, Any]], limit: int = 24) -> str:
+    selected = history[-limit:] if history else []
+    if not selected:
         return "暂无对话"
     lines = []
-    for item in history:
+    for item in selected:
         speaker = "面试官" if item.get("role") == "assistant" else "候选人"
         lines.append(f"{speaker}: {_clean_text(str(item.get('content', '')))}")
     return "\n".join(lines)
 
 
-def review_interview_progress(nerfreal: BaseReal) -> dict[str, Any]:
-    context = nerfreal.get_interview_context()
+def _review_interview_progress_from_snapshot(
+    sessionid: int,
+    context: dict[str, Any],
+    recent_history: list[dict[str, Any]],
+    user_turns: int,
+    elapsed_seconds: float,
+    model_name: str | None = None,
+) -> dict[str, Any]:
     outline = _normalize_interview_outline(context.get("interview_outline") or {}, context)
-    user_turns = nerfreal.get_user_turn_count()
-    elapsed_seconds = nerfreal.get_interview_elapsed_seconds()
-
     if user_turns <= 0:
         return build_initial_outline_progress(outline)
+    if elapsed_seconds < _get_interview_review_start_after_seconds():
+        return _normalize_outline_progress(
+            context.get("outline_progress") or build_initial_outline_progress(outline),
+            context,
+            outline,
+            user_turns,
+            elapsed_seconds,
+        )
+    if not recent_history:
+        return _fallback_outline_progress(context, outline, user_turns, elapsed_seconds)
     if elapsed_seconds >= 1800 and int(context.get("wrap_up_turns") or 0) >= 1:
         return _fallback_outline_progress(context, outline, user_turns, elapsed_seconds)
 
@@ -963,14 +1009,15 @@ def review_interview_progress(nerfreal: BaseReal) -> dict[str, Any]:
             "covered_points:\n- " + ("\n- ".join(_normalize_text_items(previous_progress.get("covered_points"), 5)) or "无"),
             "remaining_points:\n- " + ("\n- ".join(_normalize_text_items(previous_progress.get("remaining_points"), 5)) or "无"),
             "最近对话记录：",
-            _format_recent_transcript(nerfreal),
+            _format_recent_transcript_history(recent_history),
         ]
     )
 
+    selected_model = model_name or _get_interview_review_model_name()
     try:
         started_at = time.perf_counter()
         payload = _create_json_completion(
-            os.getenv("INTERVIEW_REVIEW_MODEL", os.getenv("LLM_MODEL", DEFAULT_MODEL)),
+            selected_model,
             [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": review_payload},
@@ -978,15 +1025,63 @@ def review_interview_progress(nerfreal: BaseReal) -> dict[str, Any]:
         )
         progress = _normalize_outline_progress(payload, context, outline, user_turns, elapsed_seconds)
         logger.info(
-            "interview progress reviewed in %ss: sessionid=%s decision=%s",
+            "interview progress reviewed in %ss: sessionid=%s turn=%s decision=%s model=%s",
             time.perf_counter() - started_at,
-            nerfreal.sessionid,
+            sessionid,
+            user_turns,
             progress["decision"],
+            selected_model,
         )
         return progress
     except Exception:
         logger.exception("review_interview_progress")
         return _fallback_outline_progress(context, outline, user_turns, elapsed_seconds)
+
+
+def review_interview_progress(nerfreal: BaseReal, model_name: str | None = None) -> dict[str, Any]:
+    return _review_interview_progress_from_snapshot(
+        nerfreal.sessionid,
+        nerfreal.get_interview_context(),
+        nerfreal.get_recent_history(limit=24),
+        nerfreal.get_user_turn_count(),
+        nerfreal.get_interview_elapsed_seconds(),
+        model_name,
+    )
+
+
+def schedule_interview_progress_review(
+    nerfreal: BaseReal,
+    context_snapshot: dict[str, Any],
+    history_snapshot: list[dict[str, Any]],
+    user_turns: int,
+    elapsed_seconds: float,
+) -> None:
+    if user_turns <= 0 or elapsed_seconds < _get_interview_review_start_after_seconds():
+        return
+    if not nerfreal.request_outline_progress_review(user_turns):
+        return
+
+    selected_model = _get_interview_review_model_name()
+    try:
+        progress = _review_interview_progress_from_snapshot(
+            nerfreal.sessionid,
+            context_snapshot,
+            history_snapshot,
+            user_turns,
+            elapsed_seconds,
+            selected_model,
+        )
+        if nerfreal.complete_outline_progress_review(user_turns, progress, selected_model):
+            logger.info(
+                "interview progress cached: sessionid=%s turn=%s decision=%s model=%s",
+                nerfreal.sessionid,
+                user_turns,
+                progress.get("decision", ""),
+                selected_model,
+            )
+    except Exception:
+        nerfreal.fail_outline_progress_review(user_turns)
+        logger.exception("schedule_interview_progress_review")
 
 
 def _build_interview_management_prompt_suffix(context: dict[str, Any]) -> str:

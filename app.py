@@ -68,6 +68,7 @@ from llm import (
     generate_interview_outline,
     generate_interview_report,
     llm_response,
+    schedule_interview_progress_review,
     translate_job_title,
 )
 from resume_utils import extract_resume_content
@@ -87,7 +88,7 @@ TENCENT_ASR_HOST = "asr.tencentcloudapi.com"
 TENCENT_ASR_ACTION = "SentenceRecognition"
 TENCENT_ASR_VERSION = "2019-06-14"
 TENCENT_ASR_SERVICE = "asr"
-MAX_RESUME_FILE_BYTES = 5 * 1024 * 1024
+MAX_RESUME_FILE_BYTES = 10 * 1024 * 1024
 
 def ok_json(data: dict | None = None, status: int = 200):
     payload = {"code": 0}
@@ -592,15 +593,26 @@ async def human(request):
             nerfreal.add_interview_message('assistant', text, {'source': 'echo'})
             nerfreal.put_msg_txt(text)
         elif input_type == 'chat':
-            if user['free_quota'] + user['paid_quota'] <= 0:
-                return web.json_response({"code": -1, "msg": "问题额度已用完，请充值后继续"}, status=403)
-            db_deduct_quota(user['id'])
             nerfreal.add_interview_message(
                 'user',
                 text,
                 {'source': params.get('source', 'text'), 'mode': params.get('mode', 'chat')},
             )
-            asyncio.get_event_loop().run_in_executor(None, llm_response, text, nerfreal)
+            loop = asyncio.get_running_loop()
+            context_snapshot = nerfreal.get_interview_context()
+            history_snapshot = nerfreal.get_recent_history(limit=24)
+            user_turns = nerfreal.get_user_turn_count()
+            elapsed_seconds = nerfreal.get_interview_elapsed_seconds()
+            loop.run_in_executor(
+                None,
+                schedule_interview_progress_review,
+                nerfreal,
+                context_snapshot,
+                history_snapshot,
+                user_turns,
+                elapsed_seconds,
+            )
+            loop.run_in_executor(None, llm_response, text, nerfreal)
         else:
             return error_json(f"unsupported human type: {input_type}")
 
@@ -646,7 +658,7 @@ async def resume_upload(request):
         if not filebytes:
             return error_json("上传的简历文件为空。", status=400)
         if len(filebytes) > MAX_RESUME_FILE_BYTES:
-            return error_json("简历文件过大，请控制在 5MB 以内。", status=400)
+            return error_json("简历文件过大，请控制在 10MB 以内。", status=400)
 
         job_title = str(form.get("job_title", "") or "").strip()
         resume_content = await asyncio.to_thread(extract_resume_content, filebytes, filename)
@@ -746,7 +758,8 @@ async def interview_start(request):
         if not user:
             return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
         if user['free_quota'] + user['paid_quota'] <= 0:
-            return web.json_response({"code": -1, "msg": "问题额度已用完，请充值后继续"}, status=403)
+            return web.json_response({"code": -1, "msg": "面试次数已用完，请充值后继续"}, status=403)
+        db_deduct_quota(user['id'])
 
         params = await request.json()
         sessionid = int(params.get('sessionid', 0))

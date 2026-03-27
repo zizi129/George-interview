@@ -122,6 +122,7 @@ class BaseReal:
         self._chat_history = []
         self._interview_history = []
         self._interview_context = build_default_interview_context()
+        self._reset_outline_progress_review_state_locked()
 
         if opt.tts == "edgetts":
             self.tts = EdgeTTS(opt,self)
@@ -203,6 +204,69 @@ class BaseReal:
     def is_generation_current(self, generation_id: int) -> bool:
         with self._interview_lock:
             return self._generation_id == generation_id
+
+    def _reset_outline_progress_review_state_locked(self):
+        self._outline_review_requested_turn = 0
+        self._outline_review_completed_turn = 0
+        self._outline_review_completed_at = 0.0
+        self._outline_review_model = ''
+        self._outline_review_pending = False
+
+    def request_outline_progress_review(self, user_turns: int) -> bool:
+        try:
+            target_turn = max(int(user_turns), 0)
+        except (TypeError, ValueError):
+            return False
+        if target_turn <= 0:
+            return False
+
+        with self._interview_lock:
+            if target_turn <= self._outline_review_requested_turn:
+                return False
+            if target_turn <= self._outline_review_completed_turn:
+                return False
+            self._outline_review_requested_turn = target_turn
+            self._outline_review_pending = True
+            return True
+
+    def complete_outline_progress_review(self, user_turns: int, progress: dict, model_name: str = '') -> bool:
+        try:
+            target_turn = max(int(user_turns), 0)
+        except (TypeError, ValueError):
+            return False
+        if target_turn <= 0 or not isinstance(progress, dict):
+            return False
+
+        with self._interview_lock:
+            if target_turn != self._outline_review_requested_turn:
+                return False
+            next_context = dict(self._interview_context)
+            next_context['outline_progress'] = deepcopy(progress)
+            self._interview_context = next_context
+            self._outline_review_completed_turn = target_turn
+            self._outline_review_completed_at = time.time()
+            self._outline_review_model = (model_name or '').strip()
+            self._outline_review_pending = False
+            return True
+
+    def fail_outline_progress_review(self, user_turns: int):
+        try:
+            target_turn = max(int(user_turns), 0)
+        except (TypeError, ValueError):
+            return
+        with self._interview_lock:
+            if target_turn == self._outline_review_requested_turn:
+                self._outline_review_pending = False
+
+    def get_outline_progress_review_state(self) -> dict:
+        with self._interview_lock:
+            return {
+                'pending': self._outline_review_pending,
+                'requested_turn': self._outline_review_requested_turn,
+                'completed_turn': self._outline_review_completed_turn,
+                'completed_at': self._outline_review_completed_at,
+                'model': self._outline_review_model,
+            }
 
     def set_interview_context(
         self,
@@ -350,6 +414,7 @@ class BaseReal:
             self._chat_history = []
             self._interview_history = []
             self._message_id = 0
+            self._reset_outline_progress_review_state_locked()
             if not keep_context:
                 self._interview_context = build_default_interview_context()
             else:

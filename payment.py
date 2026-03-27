@@ -22,9 +22,9 @@ WECHAT_PRIVATE_KEY_PATH = os.getenv("WECHAT_PRIVATE_KEY_PATH", "")
 WECHAT_CERT_SERIAL_NO = os.getenv("WECHAT_CERT_SERIAL_NO", "")
 
 PRICE_TABLE = {
-    10: 990,
-    50: 3990,
-    100: 6990,
+    1: 660,
+    5: 3300,
+    10: 6600,
 }
 
 ORDER_EXPIRE_SECONDS = 30 * 60
@@ -245,7 +245,7 @@ async def _wechat_native_pay(order_no: str, amount_fen: int, question_count: int
     client = _get_wechat_pay_client()
 
     code, body = client.pay(
-        description=f"面试额度 {question_count} 次",
+        description=f"AI模拟面试 {question_count} 次",
         out_trade_no=order_no,
         amount={"total": amount_fen, "currency": "CNY"},
     )
