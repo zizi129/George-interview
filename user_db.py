@@ -26,7 +26,7 @@ def init_db():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     phone TEXT UNIQUE NOT NULL,
                     nickname TEXT DEFAULT '',
-                    free_quota INTEGER DEFAULT 30,
+                    free_quota INTEGER DEFAULT 2,
                     paid_quota INTEGER DEFAULT 0,
                     created_at REAL,
                     last_login_at REAL
@@ -62,7 +62,7 @@ def get_or_create_user(phone: str) -> dict:
                 row = conn.execute("SELECT * FROM users WHERE id = ?", (row["id"],)).fetchone()
                 return dict(row)
             conn.execute(
-                "INSERT INTO users (phone, free_quota, paid_quota, created_at, last_login_at) VALUES (?, 30, 0, ?, ?)",
+                "INSERT INTO users (phone, free_quota, paid_quota, created_at, last_login_at) VALUES (?, 2, 0, ?, ?)",
                 (phone, now, now),
             )
             conn.commit()

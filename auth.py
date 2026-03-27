@@ -66,7 +66,7 @@ def require_quota(handler):
         if not user:
             return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
         if user["free_quota"] + user["paid_quota"] <= 0:
-            return web.json_response({"code": -1, "msg": "问题额度已用完，请充值后继续"}, status=403)
+            return web.json_response({"code": -1, "msg": "面试次数已用完，请充值后继续"}, status=403)
         request["user"] = user
         return await handler(request)
     return wrapper

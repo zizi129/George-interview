@@ -1677,9 +1677,52 @@
             color: var(--muted-strong);
         }
 
+        .interview-timer {
+            gap: 6px;
+            font-variant-numeric: tabular-nums;
+            border-color: rgba(90, 86, 244, 0.14);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 241, 255, 0.55) 100%);
+            box-shadow: 0 6px 16px rgba(90, 86, 244, 0.06);
+        }
+
+        .interview-timer-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.55;
+            flex-shrink: 0;
+            animation: interviewTimerPulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes interviewTimerPulse {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.08); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .interview-timer-dot {
+                animation: none;
+                opacity: 0.55;
+            }
+        }
+
+        .interview-timer-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        #interview-timer-value {
+            font-size: 13px;
+            font-weight: 650;
+            color: var(--text);
+            letter-spacing: 0.04em;
+        }
+
         .interview-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(350px, 430px);
+            grid-template-columns: minmax(0, 2.05fr) minmax(300px, 380px);
             gap: 20px;
             align-items: start;
             min-height: calc(100vh - 180px);
@@ -1721,7 +1764,7 @@
             display: grid;
             place-items: center;
             width: 100%;
-            min-height: 0;
+            min-height: clamp(240px, 38vh, 520px);
             background:
                 radial-gradient(circle at center, rgba(90, 86, 244, 0.16), rgba(90, 86, 244, 0.02) 42%, rgba(241, 243, 251, 0.94) 72%),
                 linear-gradient(180deg, #f4f6fc 0%, #eef1f8 100%);
@@ -2408,7 +2451,7 @@
                             <div class="resume-upload-row">
                                 <div class="resume-upload-meta">
                                     <div class="field-label">上传简历</div>
-                                    <div class="resume-tip">PDF / DOCX / TXT · 最大 5MB</div>
+                                    <div class="resume-tip">PDF / DOCX / TXT · 最大 10MB</div>
                                 </div>
                                 <div id="resume-status" class="resume-status is-idle">未上传</div>
                             </div>
@@ -2607,6 +2650,11 @@
                         <span id="mode-badge" class="pill">模式</span>
                         <span id="resume-badge" class="pill">未上传简历</span>
                         <span id="session-status" class="pill pill-status idle">准备中</span>
+                        <span id="interview-timer" class="pill interview-timer hidden" aria-live="polite" title="本轮面试已进行时长">
+                            <span class="interview-timer-dot" aria-hidden="true"></span>
+                            <span class="interview-timer-label">已进行</span>
+                            <time id="interview-timer-value">00:00</time>
+                        </span>
                     </div>
                 </div>
                 <button id="finish-btn" class="finish-btn" type="button">结束并生成报告</button>
@@ -2749,22 +2797,22 @@
     <div id="pay-modal" class="modal-overlay">
         <div class="modal-box">
             <button class="modal-close" id="pay-modal-close" type="button">&times;</button>
-            <h2 class="modal-title">充值面试额度</h2>
+            <h2 class="modal-title">充值面试次数</h2>
             <div class="pay-plan-grid">
-                <div class="pay-plan-card is-selected" data-count="10" data-price="990">
+                <div class="pay-plan-card is-selected" data-count="1" data-price="660">
+                    <div class="pay-plan-count">1</div>
+                    <div class="pay-plan-unit">次面试</div>
+                    <div class="pay-plan-price">¥6.6</div>
+                </div>
+                <div class="pay-plan-card" data-count="5" data-price="3300">
+                    <div class="pay-plan-count">5</div>
+                    <div class="pay-plan-unit">次面试</div>
+                    <div class="pay-plan-price">¥33</div>
+                </div>
+                <div class="pay-plan-card" data-count="10" data-price="6600">
                     <div class="pay-plan-count">10</div>
-                    <div class="pay-plan-unit">次提问</div>
-                    <div class="pay-plan-price">¥9.9</div>
-                </div>
-                <div class="pay-plan-card" data-count="50" data-price="3990">
-                    <div class="pay-plan-count">50</div>
-                    <div class="pay-plan-unit">次提问</div>
-                    <div class="pay-plan-price">¥39.9</div>
-                </div>
-                <div class="pay-plan-card" data-count="100" data-price="6990">
-                    <div class="pay-plan-count">100</div>
-                    <div class="pay-plan-unit">次提问</div>
-                    <div class="pay-plan-price">¥69.9</div>
+                    <div class="pay-plan-unit">次面试</div>
+                    <div class="pay-plan-price">¥66</div>
                 </div>
             </div>
             <div id="pay-qrcode-area" class="pay-qrcode-area hidden">
@@ -2826,6 +2874,8 @@
             resumeLoadingHintIndex: 0,
             loadingProgressValue: 0,
             interviewClosing: false,
+            interviewTimerId: null,
+            interviewTimerStartedAt: 0,
             autoReportTriggeredSessionId: 0,
             preparedInterviewerIds: {},
             preparingInterviewerPromises: {},
@@ -2834,7 +2884,7 @@
             codeCooldown: 0,
             codeCooldownTimer: null,
             payPollTimer: null,
-            selectedPayPlan: { count: 10, price: 990 }
+            selectedPayPlan: { count: 1, price: 660 }
         };
 
         const screens = {
@@ -2994,10 +3044,87 @@
             return parseInt(document.getElementById('sessionid').value || '0', 10) || 0;
         }
 
+        function formatInterviewElapsed(ms) {
+            const totalSec = Math.max(0, Math.floor(ms / 1000));
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }
+
+        function updateInterviewTimerDisplay() {
+            const val = document.getElementById('interview-timer-value');
+            if (!val || !state.interviewTimerStartedAt) {
+                return;
+            }
+            val.textContent = formatInterviewElapsed(Date.now() - state.interviewTimerStartedAt);
+        }
+
+        function resetInterviewTimer() {
+            if (state.interviewTimerId) {
+                window.clearInterval(state.interviewTimerId);
+                state.interviewTimerId = null;
+            }
+            state.interviewTimerStartedAt = 0;
+            const wrap = document.getElementById('interview-timer');
+            const val = document.getElementById('interview-timer-value');
+            if (wrap) {
+                wrap.classList.add('hidden');
+            }
+            if (val) {
+                val.textContent = '00:00';
+            }
+        }
+
+        function startInterviewTimer() {
+            if (state.interviewTimerId) {
+                window.clearInterval(state.interviewTimerId);
+                state.interviewTimerId = null;
+            }
+            state.interviewTimerStartedAt = Date.now();
+            const wrap = document.getElementById('interview-timer');
+            const val = document.getElementById('interview-timer-value');
+            if (wrap) {
+                wrap.classList.remove('hidden');
+            }
+            if (val) {
+                val.textContent = '00:00';
+            }
+            updateInterviewTimerDisplay();
+            state.interviewTimerId = window.setInterval(updateInterviewTimerDisplay, 1000);
+        }
+
+        function pauseInterviewTimer() {
+            if (state.interviewTimerId) {
+                window.clearInterval(state.interviewTimerId);
+                state.interviewTimerId = null;
+            }
+            if (state.interviewTimerStartedAt) {
+                const val = document.getElementById('interview-timer-value');
+                if (val) {
+                    val.textContent = formatInterviewElapsed(Date.now() - state.interviewTimerStartedAt);
+                }
+            }
+        }
+
+        function resumeInterviewTimerIfNeeded() {
+            if (!state.interviewTimerStartedAt || state.interviewTimerId) {
+                return;
+            }
+            if (!screens.interview || screens.interview.classList.contains('hidden')) {
+                return;
+            }
+            state.interviewTimerId = window.setInterval(updateInterviewTimerDisplay, 1000);
+        }
+
         function showScreen(name) {
             Object.entries(screens).forEach(function(entry) {
                 entry[1].classList.toggle('hidden', entry[0] !== name);
             });
+            if (name === 'interview') {
+                startInterviewTimer();
+            } else {
+                resetInterviewTimer();
+            }
         }
 
         function clearResumeLoadingTimer() {
@@ -3083,7 +3210,7 @@
                 return;
             }
             if (isLoggedIn() && !quotaOk) {
-                setupCtaHint.textContent = '面试额度已用完，请充值后继续。';
+                setupCtaHint.textContent = '面试次数已用完，请充值后继续。';
                 return;
             }
             if (state.resumeUploading) {
@@ -3472,8 +3599,8 @@
                 setResumeError('当前仅支持 PDF、DOCX、TXT 格式的简历。');
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) {
-                setResumeError('简历文件过大，请控制在 5MB 以内。');
+            if (file.size > 10 * 1024 * 1024) {
+                setResumeError('简历文件过大，请控制在 10MB 以内。');
                 return;
             }
 
@@ -3505,12 +3632,14 @@
                 renderResumeProfile(state.resumeProfile);
                 setResumeStatus(state.resumeProfile ? '上传成功' : '需重传', state.resumeProfile ? 'success' : 'error');
             } catch (error) {
+                const errorMessage = error.message || '简历解析失败';
+                const uploadFailurePattern = /10MB|^上传失败|服务器返回格式异常|服务器处理失败|请先登录/;
                 state.resumeFileName = '';
                 state.resumeOcrUsed = false;
                 state.resumeProfile = null;
                 renderResumeProfile(null);
-                setResumeStatus('解析失败', 'error');
-                setResumeError(error.message || '简历解析失败');
+                setResumeStatus(uploadFailurePattern.test(errorMessage) ? '上传失败' : '解析失败', 'error');
+                setResumeError(errorMessage);
             } finally {
                 state.resumeUploading = false;
                 clearResumeLoadingTimer();
@@ -4078,7 +4207,7 @@
             if (response.status === 403) {
                 return response.json().then(function(r) {
                     showPayModal();
-                    throw new Error(r.msg || '问题额度已用完，请充值后继续');
+                    throw new Error(r.msg || '面试次数已用完，请充值后继续');
                 });
             }
         }
@@ -4102,7 +4231,7 @@
             if (response.status === 403) {
                 var forbidResult = await response.json().catch(function() { return {}; });
                 showPayModal();
-                throw new Error(forbidResult.msg || '问题额度已用完，请充值后继续');
+                throw new Error(forbidResult.msg || '面试次数已用完，请充值后继续');
             }
 
             const result = await response.json().catch(function() {
@@ -4129,9 +4258,23 @@
                 throw new Error('请先登录');
             }
 
+            if (response.status === 413) {
+                if (url === '/resume/upload') {
+                    throw new Error('简历文件过大，请控制在 10MB 以内。');
+                }
+                throw new Error('上传文件过大，请压缩后重试。');
+            }
+
             const result = await response.json().catch(function() {
-                return { code: -1, msg: '返回格式错误' };
+                return null;
             });
+
+            if (!result || typeof result !== 'object') {
+                if (response.status >= 500) {
+                    throw new Error('服务器处理失败，请稍后重试。');
+                }
+                throw new Error(response.status ? ('上传失败（' + response.status + '）') : '服务器返回格式异常，请稍后重试。');
+            }
 
             if (!response.ok || result.code !== 0) {
                 throw new Error(result.msg || ('请求失败: ' + response.status));
@@ -4854,6 +4997,7 @@
             }
 
             state.finishing = true;
+            pauseInterviewTimer();
             finishBtn.disabled = true;
             setSessionStatus(autoTriggered ? '正在生成复盘报告' : '生成报告中', 'running');
             showReportLoading();
@@ -4879,6 +5023,7 @@
                 setSessionStatus(state.interviewClosing ? '本轮已结束' : '等待作答', state.interviewClosing ? 'running' : 'ready');
                 state.reportVisible = false;
                 alert(error.message || '评价生成失败');
+                resumeInterviewTimerIfNeeded();
             } finally {
                 state.finishing = false;
                 syncVoiceButtonState();
