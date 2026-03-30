@@ -18,6 +18,8 @@ JWT_EXPIRE_SECONDS = 7 * 24 * 3600
 
 # 开发模式：不真实发送，验证码只打印到日志
 DEV_MODE = os.getenv("SMS_DEV_MODE", "false").lower() in ("1", "true", "yes")
+# 兼容旧调用点，避免 app.py 等模块导入失败
+SMS_DEV_MODE = DEV_MODE
 
 # 验证渠道：email（默认）或 sms
 AUTH_CHANNEL = os.getenv("AUTH_CHANNEL", "email").lower()
