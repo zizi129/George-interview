@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="/brand-logo.png?v=3">
     <link rel="shortcut icon" href="/brand-logo.png?v=3">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         :root {
             --bg: #f6f7fb;
@@ -26,8 +27,8 @@
             --danger: #e35b74;
             --shadow: 0 20px 56px rgba(34, 45, 84, 0.08);
             --shadow-soft: 0 10px 28px rgba(34, 45, 84, 0.06);
-            --radius: 30px;
-            --radius-md: 24px;
+            --radius: 28px;
+            --radius-md: 22px;
             --radius-sm: 16px;
         }
 
@@ -41,64 +42,14 @@
             min-height: 100%;
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
             background:
-                radial-gradient(circle at 10% 8%, rgba(90, 86, 244, 0.09), transparent 38%),
-                radial-gradient(circle at 92% 14%, rgba(114, 168, 255, 0.09), transparent 28%),
-                radial-gradient(circle at 50% 90%, rgba(139, 125, 255, 0.04), transparent 40%),
-                linear-gradient(180deg, #fbfbfe 0%, #f5f6fb 100%);
+                radial-gradient(circle at top left, rgba(90, 86, 244, 0.08), transparent 34%),
+                radial-gradient(circle at 92% 16%, rgba(114, 168, 255, 0.08), transparent 24%),
+                linear-gradient(180deg, #fbfbfe 0%, #f6f7fb 100%);
             color: var(--text);
         }
 
         body {
             min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before,
-        body::after {
-            content: "";
-            position: fixed;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: -1;
-            filter: blur(80px);
-            opacity: 0.5;
-        }
-
-        body::before {
-            width: 520px;
-            height: 520px;
-            top: -120px;
-            left: -80px;
-            background: radial-gradient(circle, rgba(90, 86, 244, 0.15), transparent 70%);
-            animation: orbFloat1 18s ease-in-out infinite;
-        }
-
-        body::after {
-            width: 440px;
-            height: 440px;
-            bottom: -60px;
-            right: -100px;
-            background: radial-gradient(circle, rgba(122, 180, 255, 0.14), transparent 70%);
-            animation: orbFloat2 22s ease-in-out infinite;
-        }
-
-        @keyframes orbFloat1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(60px, 40px) scale(1.08); }
-            66% { transform: translate(-30px, 80px) scale(0.95); }
-        }
-
-        @keyframes orbFloat2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-50px, -30px) scale(1.05); }
-            66% { transform: translate(40px, -60px) scale(0.92); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            body::before, body::after {
-                animation: none;
-            }
         }
 
         button,
@@ -124,7 +75,7 @@
 
         .center-screen {
             display: grid;
-            align-content: center;
+            align-items: center;
         }
 
         .setup-shell,
@@ -132,102 +83,6 @@
             display: grid;
             gap: 30px;
             width: 100%;
-        }
-
-        .hero-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 0 6px;
-        }
-
-        .hero-brand-logo {
-            height: 78px;
-            display: block;
-            object-fit: contain;
-            filter: drop-shadow(0 8px 16px rgba(90, 86, 244, 0.08));
-        }
-
-        .hero-account-bar {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .hero-banner {
-            text-align: center;
-            padding: 4px 20px 0;
-            animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        .hero-badge-line {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .hero-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            color: var(--accent-strong);
-            background: rgba(90, 86, 244, 0.07);
-            border: 1px solid rgba(90, 86, 244, 0.13);
-            backdrop-filter: blur(8px);
-        }
-
-        .hero-heading {
-            margin: 0 auto 16px;
-            font-size: 48px;
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -0.04em;
-            color: var(--text);
-            max-width: 680px;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #5a56f4 0%, #7ab4ff 50%, #a78bfa 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 4s ease-in-out infinite;
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% center; }
-            50% { background-position: 100% center; }
-        }
-
-        .hero-desc {
-            margin: 0 auto;
-            color: var(--muted);
-            font-size: 15px;
-            line-height: 1.7;
-            white-space: nowrap;
-        }
-
-        @media (max-width: 720px) {
-            .hero-heading {
-                font-size: 32px;
-            }
-            .hero-desc {
-                font-size: 12px;
-                white-space: normal;
-            }
-            .hero-badge-line {
-                flex-wrap: wrap;
-            }
-            .hero-brand-logo {
-                height: 60px;
-            }
         }
 
         .page-header {
@@ -261,15 +116,11 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 18px;
+            padding: 8px 12px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(223, 228, 240, 0.6);
-            box-shadow:
-                var(--shadow-soft),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(223, 228, 240, 0.95);
+            box-shadow: var(--shadow-soft);
         }
 
         .stepper-item {
@@ -638,8 +489,7 @@
 
         .pay-qrcode-area {
             text-align: center;
-            padding: 20px 0;
-            min-height: 200px;
+            padding: 16px 0 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -647,9 +497,39 @@
             gap: 10px;
         }
 
+        .pay-qrcode-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pay-qrcode-wrap canvas,
         .pay-qrcode-area img {
-            max-width: 200px;
-            border-radius: 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        .pay-qrcode-expired-mask {
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            background: rgba(29,34,54,0.72);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            gap: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .pay-qrcode-expired-mask.hidden { display: none; }
+
+        .pay-qrcode-refresh-icon {
+            font-size: 26px;
         }
 
         .pay-status-text {
@@ -657,11 +537,59 @@
             color: var(--muted);
         }
 
+        .pay-countdown {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .pay-countdown.is-urgent {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .pay-success-anim {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 0 10px;
+        }
+
+        .pay-success-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1fa97a, #3dd68c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(31, 169, 122, 0.35);
+            animation: paySuccessPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        @keyframes paySuccessPop {
+            from { transform: scale(0.3); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        .pay-success-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .pay-success-sub {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
         .setup-card {
             display: grid;
             grid-template-columns: minmax(0, 1.24fr) minmax(360px, 0.86fr);
-            gap: 28px;
-            width: min(100%, 1260px);
+            gap: 24px;
+            width: min(100%, 1240px);
         }
 
         .setup-card.preview-hidden {
@@ -675,26 +603,15 @@
         .video-panel,
         .side-panel,
         .modal-card {
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(230, 233, 244, 0.6);
+            background: var(--card);
+            border: 1px solid rgba(230, 233, 242, 0.95);
             border-radius: var(--radius);
-            box-shadow:
-                var(--shadow),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
         }
 
         .setup-main {
-            padding: 38px 38px 34px;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-        }
-
-        .setup-main:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 28px 64px rgba(34, 45, 84, 0.1),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
+            padding: 34px 34px 30px;
         }
 
         .setup-preview-card {
@@ -703,22 +620,12 @@
             display: grid;
             grid-template-rows: auto 1fr;
             gap: 16px;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-        }
-
-        .setup-preview-card:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 28px 64px rgba(34, 45, 84, 0.1),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
         }
 
         .setup-cta-panel {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-top: 12px;
-            padding-top: 16px;
+            margin-top: -4px;
         }
 
         .setup-cta-panel.is-ready {
@@ -741,9 +648,9 @@
         }
 
         .setup-cta-title {
-            font-size: 26px;
-            line-height: 1.18;
-            font-weight: 800;
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 700;
             color: var(--text);
         }
 
@@ -755,55 +662,19 @@
         }
 
         .title {
-            margin: 14px 0 12px;
-            font-size: 38px;
-            line-height: 1.06;
-            font-weight: 800;
-            letter-spacing: -0.035em;
+            margin: 12px 0 10px;
+            font-size: 34px;
+            line-height: 1.08;
+            font-weight: 700;
+            letter-spacing: -0.03em;
         }
 
         .subtitle {
-            margin: 0 0 28px;
+            margin: 0 0 24px;
             color: var(--muted);
-            font-size: 15.5px;
+            font-size: 15px;
             line-height: 1.7;
-            max-width: 540px;
-        }
-
-        .form-group {
-            display: grid;
-            gap: 6px;
-        }
-
-        .form-group-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .form-group-icon {
-            width: 34px;
-            height: 34px;
-            display: grid;
-            place-items: center;
-            border-radius: 10px;
-            background: linear-gradient(135deg, rgba(90, 86, 244, 0.1), rgba(122, 180, 255, 0.12));
-            color: var(--accent-strong);
-            flex-shrink: 0;
-        }
-
-        .form-group-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.01em;
-        }
-
-        .form-divider {
-            height: 1px;
-            margin: 8px 0;
-            background: linear-gradient(90deg, transparent, rgba(90, 86, 244, 0.1), rgba(214, 219, 234, 0.5), rgba(90, 86, 244, 0.1), transparent);
+            max-width: 520px;
         }
 
         .field {
@@ -838,8 +709,8 @@
 
         .text-input:focus,
         .answer-input:focus {
-            border-color: rgba(90, 86, 244, 0.44);
-            box-shadow: 0 0 0 4px rgba(90, 86, 244, 0.1), 0 4px 16px rgba(90, 86, 244, 0.06);
+            border-color: rgba(90, 86, 244, 0.42);
+            box-shadow: 0 0 0 4px rgba(90, 86, 244, 0.1);
             background: #fff;
         }
 
@@ -864,15 +735,13 @@
         .interviewer-card,
         .mode-card {
             appearance: none;
-            border: 1px solid rgba(224, 228, 242, 0.7);
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.88);
             color: var(--text);
             border-radius: 22px;
             cursor: pointer;
             text-align: left;
-            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.22s ease, background 0.2s ease;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
 
         .interviewer-card {
@@ -882,9 +751,9 @@
 
         .interviewer-card:hover,
         .mode-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(90, 86, 244, 0.36);
-            box-shadow: 0 16px 32px rgba(27, 34, 68, 0.08);
+            transform: translateY(-1px);
+            border-color: rgba(90, 86, 244, 0.32);
+            box-shadow: 0 12px 24px rgba(27, 34, 68, 0.06);
         }
 
         .interviewer-card.active,
@@ -1080,39 +949,6 @@
             cursor: not-allowed;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        #setup-screen .setup-main,
-        #setup-screen .setup-preview-card {
-            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        #setup-screen .setup-preview-card {
-            animation-delay: 0.08s;
-        }
-
-        .loading-card {
-            animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #setup-screen .setup-main,
-            #setup-screen .setup-preview-card,
-            .loading-card,
-            .hero-banner {
-                animation: none;
-            }
-        }
-
         @keyframes floatBreath {
             0%,
             100% {
@@ -1153,21 +989,15 @@
         }
 
         .hero-cta-btn {
-            min-width: 240px;
-            padding: 18px 36px;
+            min-width: 220px;
+            padding: 16px 30px;
             border-radius: 999px;
-            font-size: 16px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #5a56f4 0%, #7b6fff 40%, #7ab4ff 100%);
-            background-size: 200% auto;
-            box-shadow: 0 18px 40px rgba(90, 86, 244, 0.26);
-            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, background-position 0.4s ease;
+            background: linear-gradient(135deg, #645bff 0%, #78b7ff 100%);
+            box-shadow: 0 18px 36px rgba(99, 100, 255, 0.24);
         }
 
         .hero-cta-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 26px 52px rgba(90, 86, 244, 0.34);
-            background-position: right center;
+            box-shadow: 0 22px 44px rgba(99, 100, 255, 0.3);
         }
 
         .setup-cta-panel.is-ready .hero-cta-btn {
@@ -1179,17 +1009,8 @@
         }
 
         .finish-btn {
-            min-width: 200px;
-            padding: 12px 22px;
-            border-radius: 999px;
-            font-size: 14px;
-            background: linear-gradient(135deg, #e35b74 0%, #ff7e9a 100%);
-            box-shadow: 0 10px 24px rgba(227, 91, 116, 0.18);
-        }
-
-        .finish-btn:hover {
-            background: linear-gradient(135deg, #d14e68 0%, #f97090 100%);
-            box-shadow: 0 14px 32px rgba(227, 91, 116, 0.24);
+            min-width: 210px;
+            padding: 14px 20px;
         }
 
         @keyframes pulseGlow {
@@ -1224,7 +1045,7 @@
         .danger-btn:hover,
         .voice-btn:hover,
         .finish-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .primary-btn:disabled,
@@ -1247,35 +1068,13 @@
 
         .mode-card {
             padding: 18px 16px;
-            display: grid;
-            grid-template-columns: auto 1fr;
-            grid-template-rows: auto auto;
-            column-gap: 14px;
-            row-gap: 4px;
-            align-items: center;
-        }
-
-        .mode-icon {
-            grid-row: 1 / -1;
-            width: 44px;
-            height: 44px;
-            display: grid;
-            place-items: center;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(90, 86, 244, 0.08), rgba(122, 180, 255, 0.1));
-            color: var(--accent-strong);
-            transition: background 0.2s ease;
-        }
-
-        .mode-card.active .mode-icon {
-            background: linear-gradient(135deg, rgba(90, 86, 244, 0.16), rgba(122, 180, 255, 0.18));
         }
 
         .mode-title {
             display: block;
             font-size: 16px;
             font-weight: 600;
-            align-self: end;
+            margin-bottom: 6px;
         }
 
         .mode-desc {
@@ -1283,7 +1082,6 @@
             color: var(--muted);
             font-size: 13px;
             line-height: 1.55;
-            align-self: start;
         }
 
         .resume-status {
@@ -1673,8 +1471,8 @@
 
         .loading-card {
             width: 100%;
-            max-width: 640px;
-            padding: 40px 38px;
+            max-width: 620px;
+            padding: 34px;
             text-align: center;
         }
 
@@ -1687,15 +1485,13 @@
         }
 
         .loader-orb {
-            width: 88px;
-            height: 88px;
-            margin: 6px auto 24px;
-            border-radius: 28px;
-            background: linear-gradient(135deg, rgba(90, 86, 244, 0.14), rgba(122, 180, 255, 0.1));
+            width: 84px;
+            height: 84px;
+            margin: 6px auto 22px;
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(90, 86, 244, 0.12), rgba(90, 86, 244, 0.06));
             position: relative;
-            box-shadow:
-                inset 0 0 0 1px rgba(90, 86, 244, 0.12),
-                0 0 60px rgba(90, 86, 244, 0.1);
+            box-shadow: inset 0 0 0 1px rgba(90, 86, 244, 0.12);
         }
 
         .loader-orb::before,
@@ -1894,24 +1690,15 @@
 
         .topbar {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 18px;
-            padding: 6px 16px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.68);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(230, 233, 244, 0.55);
-            box-shadow: 0 8px 32px rgba(34, 45, 84, 0.06);
+            padding: 4px 0 10px;
         }
 
         .topbar-main {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            min-width: 0;
-            flex-wrap: wrap;
+            display: grid;
+            gap: 12px;
         }
 
         .topbar-brand {
@@ -1921,7 +1708,7 @@
         }
 
         .topbar-brand .brand-logo {
-            height: 40px;
+            height: 52px;
         }
 
         .exit-card .brand {
@@ -1968,54 +1755,11 @@
             color: var(--muted-strong);
         }
 
-        .interview-timer {
-            gap: 6px;
-            font-variant-numeric: tabular-nums;
-            border-color: rgba(90, 86, 244, 0.14);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 241, 255, 0.55) 100%);
-            box-shadow: 0 6px 16px rgba(90, 86, 244, 0.06);
-        }
-
-        .interview-timer-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent);
-            opacity: 0.55;
-            flex-shrink: 0;
-            animation: interviewTimerPulse 2.4s ease-in-out infinite;
-        }
-
-        @keyframes interviewTimerPulse {
-            0%, 100% { opacity: 0.35; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.08); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .interview-timer-dot {
-                animation: none;
-                opacity: 0.55;
-            }
-        }
-
-        .interview-timer-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--muted);
-        }
-
-        #interview-timer-value {
-            font-size: 13px;
-            font-weight: 650;
-            color: var(--text);
-            letter-spacing: 0.04em;
-        }
-
         .interview-grid {
             display: grid;
-            grid-template-columns: minmax(0, 2.4fr) minmax(320px, 400px);
+            grid-template-columns: minmax(0, 1.4fr) minmax(350px, 430px);
             gap: 20px;
-            align-items: stretch;
+            align-items: start;
             min-height: calc(100vh - 180px);
         }
 
@@ -2025,12 +1769,9 @@
         }
 
         .video-panel {
-            padding: 18px;
+            padding: 20px;
             position: sticky;
             top: 8px;
-            display: grid;
-            grid-template-rows: auto 1fr;
-            gap: 14px;
         }
 
         .video-panel-head {
@@ -2058,18 +1799,14 @@
             display: grid;
             place-items: center;
             width: 100%;
-            min-height: clamp(280px, 42vh, 600px);
+            min-height: 0;
             background:
-                radial-gradient(ellipse 60% 50% at 50% 40%, rgba(90, 86, 244, 0.14), transparent 60%),
-                radial-gradient(circle at 80% 20%, rgba(122, 180, 255, 0.08), transparent 50%),
-                linear-gradient(180deg, #1d2236 0%, #2a2f4a 50%, #1d2236 100%);
+                radial-gradient(circle at center, rgba(90, 86, 244, 0.16), rgba(90, 86, 244, 0.02) 42%, rgba(241, 243, 251, 0.94) 72%),
+                linear-gradient(180deg, #f4f6fc 0%, #eef1f8 100%);
             border-radius: 24px;
             overflow: hidden;
             aspect-ratio: 16 / 9;
-            border: 1px solid rgba(90, 86, 244, 0.12);
-            box-shadow:
-                0 0 80px rgba(90, 86, 244, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(223, 228, 240, 0.92);
         }
 
         #video {
@@ -2202,15 +1939,14 @@
         }
 
         .message-item.user .message-bubble {
-            background: linear-gradient(135deg, #5a56f4 0%, #7b6fff 50%, #7ab4ff 100%);
+            background: linear-gradient(135deg, rgba(90, 86, 244, 0.96), rgba(109, 101, 255, 0.96));
             color: white;
-            box-shadow: 0 12px 26px rgba(90, 86, 244, 0.18);
+            box-shadow: 0 12px 26px rgba(90, 86, 244, 0.16);
         }
 
         .answer-panel {
             padding: 0 22px 22px;
             border-top: 1px solid rgba(232, 236, 245, 0.9);
-            background: linear-gradient(180deg, rgba(248, 249, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
         }
 
         .answer-form {
@@ -2352,7 +2088,6 @@
             overscroll-behavior: contain;
             scrollbar-width: thin;
             scroll-behavior: smooth;
-            animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .modal-card::-webkit-scrollbar {
@@ -2452,13 +2187,10 @@
         }
 
         .score-value {
-            font-size: 68px;
+            font-size: 64px;
             font-weight: 800;
             line-height: 1;
-            background: linear-gradient(135deg, var(--accent) 0%, #7ab4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text);
         }
 
         .recommendation {
@@ -2602,16 +2334,6 @@
             .side-panel {
                 max-height: none;
             }
-
-            .topbar {
-                border-radius: var(--radius);
-                flex-wrap: wrap;
-                padding: 12px 16px;
-            }
-
-            .hero-heading {
-                font-size: 36px;
-            }
         }
 
         @media (max-width: 720px) {
@@ -2623,12 +2345,6 @@
             .panel-header {
                 flex-direction: column;
                 align-items: stretch;
-            }
-
-            .topbar {
-                border-radius: var(--radius-md);
-                padding: 14px;
-                gap: 12px;
             }
 
             .setup-main,
@@ -2660,10 +2376,6 @@
 
             .title {
                 font-size: 28px;
-            }
-
-            .hero-heading br {
-                display: none;
             }
 
             .brand-logo {
@@ -2705,11 +2417,36 @@
     <div class="app-shell">
         <section id="setup-screen" class="screen center-screen">
             <div class="setup-shell">
-                <div class="hero-topbar">
-                    <div class="hero-brand">
-                        <img class="hero-brand-logo" src="/brand-logo-horizontal-clean.png" alt="乔治面试">
+                <div class="page-header">
+                    <div class="brand">
+                        <img class="brand-logo" src="/brand-logo-horizontal-clean.png" alt="乔治面试">
                     </div>
-                    <div class="hero-account-bar">
+                    <nav class="stepper" aria-label="面试流程">
+                        <div class="stepper-item is-active" aria-current="step">
+                            <span class="stepper-marker">1</span>
+                            <span class="stepper-copy">
+                                <span class="stepper-label">准备</span>
+                                <span class="stepper-desc">完善岗位与简历信息</span>
+                            </span>
+                        </div>
+                        <span class="stepper-line" aria-hidden="true"></span>
+                        <div class="stepper-item">
+                            <span class="stepper-marker">2</span>
+                            <span class="stepper-copy">
+                                <span class="stepper-label">面试</span>
+                                <span class="stepper-desc">实时问答与追问</span>
+                            </span>
+                        </div>
+                        <span class="stepper-line" aria-hidden="true"></span>
+                        <div class="stepper-item">
+                            <span class="stepper-marker">3</span>
+                            <span class="stepper-copy">
+                                <span class="stepper-label">复盘</span>
+                                <span class="stepper-desc">获得能力评估报告</span>
+                            </span>
+                        </div>
+                    </nav>
+                    <div class="header-actions">
                         <span id="quota-badge" class="quota-badge hidden">剩余 <span id="quota-count">--</span> 次</span>
                         <button id="login-btn" class="account-entry" type="button" aria-label="登录或注册">
                             <span id="login-btn-text">登录 / 注册</span>
@@ -2721,74 +2458,35 @@
                                 <button class="user-menu-item is-danger" id="user-menu-logout" type="button">退出登录</button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="hero-banner">
-                    <h1 class="hero-heading">
-                        开启你的<br><span class="gradient-text">AI 智能面试</span>之旅
-                    </h1>
-                    <p class="hero-desc">由数字人面试官驱动，模拟真实面试场景，获取即时反馈与专业能力评估报告</p>
-                    <div class="hero-badge-line">
-                        <span class="hero-chip">AI 驱动</span>
-                        <span class="hero-chip">实时交互</span>
-                        <span class="hero-chip">智能评估</span>
+                        <div class="page-avatar">AI</div>
                     </div>
                 </div>
 
                 <div id="setup-card" class="setup-card">
                     <div class="setup-main">
+                        <h1 class="title">面试准备</h1>
 
-                        <div class="form-group">
-                            <div class="form-group-header">
-                                <div class="form-group-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                                </div>
-                                <div class="form-group-title">岗位信息</div>
-                            </div>
+                        <label class="field">
+                            <span class="field-label">目标岗位</span>
+                            <input id="job-title-input" class="text-input" type="text" placeholder="例如：产品经理" required>
+                        </label>
 
-                            <label class="field">
-                                <span class="field-label">目标岗位</span>
-                                <input id="job-title-input" class="text-input" type="text" placeholder="例如：产品经理" required>
-                            </label>
+                        <label class="field">
+                            <span class="field-label">岗位要求 / JD</span>
+                            <textarea id="job-requirements-input" class="text-input textarea-input" placeholder="可粘贴岗位职责、任职要求、技能要求等内容"></textarea>
+                        </label>
 
-                            <label class="field">
-                                <span class="field-label">岗位要求 / JD</span>
-                                <textarea id="job-requirements-input" class="text-input textarea-input" placeholder="可粘贴岗位职责、任职要求、技能要求等内容"></textarea>
-                            </label>
+                        <div class="interviewer-card-shell">
+                            <div class="field-label">选择面试官形象</div>
+                            <div id="interviewer-grid" class="interviewer-grid"></div>
+                            <div id="interviewer-notice" class="interviewer-notice"></div>
                         </div>
-
-                        <div class="form-divider"></div>
-
-                        <div class="form-group">
-                            <div class="form-group-header">
-                                <div class="form-group-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M5.34 19.5A7.5 7.5 0 0 1 12 15a7.5 7.5 0 0 1 6.66 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                                </div>
-                                <div class="form-group-title">面试官形象</div>
-                            </div>
-
-                            <div class="interviewer-card-shell">
-                                <div id="interviewer-grid" class="interviewer-grid"></div>
-                                <div id="interviewer-notice" class="interviewer-notice"></div>
-                            </div>
-                        </div>
-
-                        <div class="form-divider"></div>
-
-                        <div class="form-group">
-                            <div class="form-group-header">
-                                <div class="form-group-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                </div>
-                                <div class="form-group-title">简历上传</div>
-                            </div>
 
                         <div class="resume-card">
                             <div class="resume-upload-row">
                                 <div class="resume-upload-meta">
                                     <div class="field-label">上传简历</div>
-                                    <div class="resume-tip">PDF / DOCX / TXT · 最大 10MB</div>
+                                    <div class="resume-tip">PDF / DOCX / TXT · 最大 5MB</div>
                                 </div>
                                 <div id="resume-status" class="resume-status is-idle">未上传</div>
                             </div>
@@ -2812,29 +2510,14 @@
                             <div id="resume-error" class="error-text resume-error"></div>
                         </div>
 
-                        </div>
-
-                        <div class="form-divider"></div>
-
-                        <div class="form-group">
-                            <div class="form-group-header">
-                                <div class="form-group-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                </div>
-                                <div class="form-group-title">面试模式</div>
-                            </div>
+                        <div class="field">
+                            <span class="field-label">面试模式</span>
                             <div class="mode-grid">
                                 <button class="mode-card active" type="button" data-mode="text">
-                                    <span class="mode-icon" aria-hidden="true">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                                    </span>
                                     <span class="mode-title">文字语音面试</span>
                                     <span class="mode-desc">键盘输入作答，适合快速演练</span>
                                 </button>
                                 <button class="mode-card" type="button" data-mode="voice">
-                                    <span class="mode-icon" aria-hidden="true">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.8"/><path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18v4m-4 0h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                                    </span>
                                     <span class="mode-title">视频语音面试</span>
                                     <span class="mode-desc">与数字人实时语音互动</span>
                                 </button>
@@ -3002,11 +2685,6 @@
                         <span id="mode-badge" class="pill">模式</span>
                         <span id="resume-badge" class="pill">未上传简历</span>
                         <span id="session-status" class="pill pill-status idle">准备中</span>
-                        <span id="interview-timer" class="pill interview-timer hidden" aria-live="polite" title="本轮面试已进行时长">
-                            <span class="interview-timer-dot" aria-hidden="true"></span>
-                            <span class="interview-timer-label">已进行</span>
-                            <time id="interview-timer-value">00:00</time>
-                        </span>
                     </div>
                 </div>
                 <button id="finish-btn" class="finish-btn" type="button">结束并生成报告</button>
@@ -3141,7 +2819,8 @@
             </div>
             <div id="auth-error" class="auth-error"></div>
             <button id="auth-submit-btn" class="auth-submit-btn" type="button">登录</button>
-            <div class="auth-dev-hint">开发模式：验证码固定为 1234</div>
+            <div id="auth-dev-hint" class="auth-dev-hint hidden">【开发模式】验证码见服务器日志（SMS_DEV_MODE=true）</div>
+            <div id="auth-prod-hint" class="auth-dev-hint">验证码将发送到您的手机，5 分钟内有效</div>
         </div>
     </div>
 
@@ -3150,28 +2829,50 @@
         <div class="modal-box">
             <button class="modal-close" id="pay-modal-close" type="button">&times;</button>
             <h2 class="modal-title">充值面试次数</h2>
-            <div class="pay-plan-grid">
-                <div class="pay-plan-card is-selected" data-count="1" data-price="660">
-                    <div class="pay-plan-count">1</div>
-                    <div class="pay-plan-unit">次面试</div>
-                    <div class="pay-plan-price">¥6.6</div>
+
+            <!-- 套餐选择区（二维码出来前显示） -->
+            <div id="pay-plan-section">
+                <div class="pay-plan-grid">
+                    <div class="pay-plan-card is-selected" data-count="1" data-price="660">
+                        <div class="pay-plan-count">1</div>
+                        <div class="pay-plan-unit">次面试</div>
+                        <div class="pay-plan-price">¥6.6</div>
+                    </div>
+                    <div class="pay-plan-card" data-count="5" data-price="3300">
+                        <div class="pay-plan-count">5</div>
+                        <div class="pay-plan-unit">次面试</div>
+                        <div class="pay-plan-price">¥33</div>
+                    </div>
+                    <div class="pay-plan-card" data-count="10" data-price="6600">
+                        <div class="pay-plan-count">10</div>
+                        <div class="pay-plan-unit">次面试</div>
+                        <div class="pay-plan-price">¥66</div>
+                    </div>
                 </div>
-                <div class="pay-plan-card" data-count="5" data-price="3300">
-                    <div class="pay-plan-count">5</div>
-                    <div class="pay-plan-unit">次面试</div>
-                    <div class="pay-plan-price">¥33</div>
-                </div>
-                <div class="pay-plan-card" data-count="10" data-price="6600">
-                    <div class="pay-plan-count">10</div>
-                    <div class="pay-plan-unit">次面试</div>
-                    <div class="pay-plan-price">¥66</div>
-                </div>
+                <button id="pay-submit-btn" class="auth-submit-btn" type="button">立即支付</button>
+                <div id="pay-error" class="auth-error"></div>
             </div>
+
+            <!-- 二维码区（下单成功后显示） -->
             <div id="pay-qrcode-area" class="pay-qrcode-area hidden">
-                <div id="pay-status-text" class="pay-status-text">正在生成支付二维码...</div>
+                <div class="pay-qrcode-wrap">
+                    <canvas id="pay-qrcode-canvas"></canvas>
+                    <div id="pay-qrcode-expired-mask" class="pay-qrcode-expired-mask hidden">
+                        <div class="pay-qrcode-refresh-icon">↻</div>
+                        <div>二维码已过期，点击刷新</div>
+                    </div>
+                </div>
+                <div id="pay-status-text" class="pay-status-text">请使用微信扫码支付</div>
+                <div id="pay-countdown" class="pay-countdown"></div>
+                <button id="pay-change-plan-btn" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;margin-top:2px;">更换套餐</button>
             </div>
-            <button id="pay-submit-btn" class="auth-submit-btn" type="button">立即支付</button>
-            <div id="pay-error" class="auth-error"></div>
+
+            <!-- 支付成功动效区 -->
+            <div id="pay-success-area" class="pay-success-anim hidden">
+                <div class="pay-success-icon">✓</div>
+                <div class="pay-success-text">支付成功！</div>
+                <div id="pay-success-sub" class="pay-success-sub"></div>
+            </div>
         </div>
     </div>
 
@@ -3226,8 +2927,6 @@
             resumeLoadingHintIndex: 0,
             loadingProgressValue: 0,
             interviewClosing: false,
-            interviewTimerId: null,
-            interviewTimerStartedAt: 0,
             autoReportTriggeredSessionId: 0,
             preparedInterviewerIds: {},
             preparingInterviewerPromises: {},
@@ -3236,6 +2935,7 @@
             codeCooldown: 0,
             codeCooldownTimer: null,
             payPollTimer: null,
+            payCountdownTimer: null,
             selectedPayPlan: { count: 1, price: 660 }
         };
 
@@ -3342,6 +3042,13 @@
         const payPlanCards = Array.from(document.querySelectorAll('.pay-plan-card'));
         const payQrcodeArea = document.getElementById('pay-qrcode-area');
         const payStatusText = document.getElementById('pay-status-text');
+        const payCountdownEl = document.getElementById('pay-countdown');
+        const payQrcodeCanvas = document.getElementById('pay-qrcode-canvas');
+        const payQrcodeExpiredMask = document.getElementById('pay-qrcode-expired-mask');
+        const payPlanSection = document.getElementById('pay-plan-section');
+        const payChangePlanBtn = document.getElementById('pay-change-plan-btn');
+        const paySuccessArea = document.getElementById('pay-success-area');
+        const paySuccessSub = document.getElementById('pay-success-sub');
         const paySubmitBtn = document.getElementById('pay-submit-btn');
         const payError = document.getElementById('pay-error');
         const fallbackInterviewerOptions = [
@@ -3396,87 +3103,10 @@
             return parseInt(document.getElementById('sessionid').value || '0', 10) || 0;
         }
 
-        function formatInterviewElapsed(ms) {
-            const totalSec = Math.max(0, Math.floor(ms / 1000));
-            const m = Math.floor(totalSec / 60);
-            const s = totalSec % 60;
-            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-        }
-
-        function updateInterviewTimerDisplay() {
-            const val = document.getElementById('interview-timer-value');
-            if (!val || !state.interviewTimerStartedAt) {
-                return;
-            }
-            val.textContent = formatInterviewElapsed(Date.now() - state.interviewTimerStartedAt);
-        }
-
-        function resetInterviewTimer() {
-            if (state.interviewTimerId) {
-                window.clearInterval(state.interviewTimerId);
-                state.interviewTimerId = null;
-            }
-            state.interviewTimerStartedAt = 0;
-            const wrap = document.getElementById('interview-timer');
-            const val = document.getElementById('interview-timer-value');
-            if (wrap) {
-                wrap.classList.add('hidden');
-            }
-            if (val) {
-                val.textContent = '00:00';
-            }
-        }
-
-        function startInterviewTimer() {
-            if (state.interviewTimerId) {
-                window.clearInterval(state.interviewTimerId);
-                state.interviewTimerId = null;
-            }
-            state.interviewTimerStartedAt = Date.now();
-            const wrap = document.getElementById('interview-timer');
-            const val = document.getElementById('interview-timer-value');
-            if (wrap) {
-                wrap.classList.remove('hidden');
-            }
-            if (val) {
-                val.textContent = '00:00';
-            }
-            updateInterviewTimerDisplay();
-            state.interviewTimerId = window.setInterval(updateInterviewTimerDisplay, 1000);
-        }
-
-        function pauseInterviewTimer() {
-            if (state.interviewTimerId) {
-                window.clearInterval(state.interviewTimerId);
-                state.interviewTimerId = null;
-            }
-            if (state.interviewTimerStartedAt) {
-                const val = document.getElementById('interview-timer-value');
-                if (val) {
-                    val.textContent = formatInterviewElapsed(Date.now() - state.interviewTimerStartedAt);
-                }
-            }
-        }
-
-        function resumeInterviewTimerIfNeeded() {
-            if (!state.interviewTimerStartedAt || state.interviewTimerId) {
-                return;
-            }
-            if (!screens.interview || screens.interview.classList.contains('hidden')) {
-                return;
-            }
-            state.interviewTimerId = window.setInterval(updateInterviewTimerDisplay, 1000);
-        }
-
         function showScreen(name) {
             Object.entries(screens).forEach(function(entry) {
                 entry[1].classList.toggle('hidden', entry[0] !== name);
             });
-            if (name === 'interview') {
-                startInterviewTimer();
-            } else {
-                resetInterviewTimer();
-            }
         }
 
         function clearResumeLoadingTimer() {
@@ -3951,8 +3581,8 @@
                 setResumeError('当前仅支持 PDF、DOCX、TXT 格式的简历。');
                 return;
             }
-            if (file.size > 10 * 1024 * 1024) {
-                setResumeError('简历文件过大，请控制在 10MB 以内。');
+            if (file.size > 5 * 1024 * 1024) {
+                setResumeError('简历文件过大，请控制在 5MB 以内。');
                 return;
             }
 
@@ -3984,14 +3614,12 @@
                 renderResumeProfile(state.resumeProfile);
                 setResumeStatus(state.resumeProfile ? '上传成功' : '需重传', state.resumeProfile ? 'success' : 'error');
             } catch (error) {
-                const errorMessage = error.message || '简历解析失败';
-                const uploadFailurePattern = /10MB|^上传失败|服务器返回格式异常|服务器处理失败|请先登录/;
                 state.resumeFileName = '';
                 state.resumeOcrUsed = false;
                 state.resumeProfile = null;
                 renderResumeProfile(null);
-                setResumeStatus(uploadFailurePattern.test(errorMessage) ? '上传失败' : '解析失败', 'error');
-                setResumeError(errorMessage);
+                setResumeStatus('解析失败', 'error');
+                setResumeError(error.message || '简历解析失败');
             } finally {
                 state.resumeUploading = false;
                 clearResumeLoadingTimer();
@@ -4538,16 +4166,100 @@
         function showPayModal() {
             payError.textContent = '';
             payQrcodeArea.classList.add('hidden');
+            payPlanSection.classList.remove('hidden');
+            paySuccessArea.classList.add('hidden');
             paySubmitBtn.disabled = false;
+            _clearPayCountdown();
             payModal.classList.add('is-visible');
         }
 
         function hidePayModal() {
             payModal.classList.remove('is-visible');
+            _clearPayPoll();
+            _clearPayCountdown();
+        }
+
+        function _clearPayPoll() {
             if (state.payPollTimer) {
                 clearInterval(state.payPollTimer);
                 state.payPollTimer = null;
             }
+        }
+
+        function _clearPayCountdown() {
+            if (state.payCountdownTimer) {
+                clearInterval(state.payCountdownTimer);
+                state.payCountdownTimer = null;
+            }
+            payCountdownEl.textContent = '';
+            payCountdownEl.className = 'pay-countdown';
+        }
+
+        function _startPayCountdown(expireAt) {
+            _clearPayCountdown();
+            function tick() {
+                var remaining = Math.max(0, Math.floor(expireAt - Date.now() / 1000));
+                if (remaining <= 0) {
+                    payCountdownEl.textContent = '二维码已过期';
+                    payCountdownEl.className = 'pay-countdown is-urgent';
+                    payQrcodeExpiredMask.classList.remove('hidden');
+                    _clearPayCountdown();
+                    _clearPayPoll();
+                    return;
+                }
+                var m = Math.floor(remaining / 60);
+                var s = remaining % 60;
+                payCountdownEl.textContent = '有效期 ' + m + ':' + String(s).padStart(2, '0');
+                payCountdownEl.className = remaining <= 120 ? 'pay-countdown is-urgent' : 'pay-countdown';
+            }
+            tick();
+            state.payCountdownTimer = setInterval(tick, 1000);
+        }
+
+        async function _renderPayQrcode(codeUrl) {
+            try {
+                await QRCode.toCanvas(payQrcodeCanvas, codeUrl, {
+                    width: 200,
+                    margin: 2,
+                    color: { dark: '#1d2236', light: '#ffffff' }
+                });
+                payQrcodeExpiredMask.classList.add('hidden');
+            } catch (e) {
+                console.error('QRCode render error', e);
+                payStatusText.textContent = '二维码生成失败，请刷新重试';
+            }
+        }
+
+        function _showPayQrView(codeUrl, orderNo, questionCount) {
+            payPlanSection.classList.add('hidden');
+            payQrcodeArea.classList.remove('hidden');
+            paySuccessArea.classList.add('hidden');
+            payStatusText.textContent = '请用微信扫码支付';
+            _renderPayQrcode(codeUrl);
+            var expireAt = Date.now() / 1000 + 30 * 60;
+            _startPayCountdown(expireAt);
+            _clearPayPoll();
+            state.payPollTimer = setInterval(async function () {
+                try {
+                    var qr = await postJSON('/pay/query', { order_no: orderNo });
+                    if (qr.data && qr.data.status === 'paid') {
+                        _clearPayPoll();
+                        _clearPayCountdown();
+                        _showPaySuccess(questionCount, qr.data.current_quota);
+                        await fetchUserInfo();
+                    }
+                } catch (e) {
+                    console.error('pay poll error', e);
+                }
+            }, 3000);
+        }
+
+        function _showPaySuccess(questionCount, totalQuota) {
+            payQrcodeArea.classList.add('hidden');
+            payPlanSection.classList.add('hidden');
+            paySuccessArea.classList.remove('hidden');
+            paySuccessSub.textContent = '已添加 ' + questionCount + ' 次面试额度，当前剩余 ' + totalQuota + ' 次';
+            setTimeout(hidePayModal, 2800);
         }
 
         function handleAuthResponse(response) {
@@ -4610,23 +4322,9 @@
                 throw new Error('请先登录');
             }
 
-            if (response.status === 413) {
-                if (url === '/resume/upload') {
-                    throw new Error('简历文件过大，请控制在 10MB 以内。');
-                }
-                throw new Error('上传文件过大，请压缩后重试。');
-            }
-
             const result = await response.json().catch(function() {
-                return null;
+                return { code: -1, msg: '返回格式错误' };
             });
-
-            if (!result || typeof result !== 'object') {
-                if (response.status >= 500) {
-                    throw new Error('服务器处理失败，请稍后重试。');
-                }
-                throw new Error(response.status ? ('上传失败（' + response.status + '）') : '服务器返回格式异常，请稍后重试。');
-            }
 
             if (!response.ok || result.code !== 0) {
                 throw new Error(result.msg || ('请求失败: ' + response.status));
@@ -5349,7 +5047,6 @@
             }
 
             state.finishing = true;
-            pauseInterviewTimer();
             finishBtn.disabled = true;
             setSessionStatus(autoTriggered ? '正在生成复盘报告' : '生成报告中', 'running');
             showReportLoading();
@@ -5375,7 +5072,6 @@
                 setSessionStatus(state.interviewClosing ? '本轮已结束' : '等待作答', state.interviewClosing ? 'running' : 'ready');
                 state.reportVisible = false;
                 alert(error.message || '评价生成失败');
-                resumeInterviewTimerIfNeeded();
             } finally {
                 state.finishing = false;
                 syncVoiceButtonState();
@@ -5653,7 +5349,7 @@
             });
         });
 
-        paySubmitBtn.addEventListener('click', async function() {
+        async function _doCreateOrder() {
             if (!isLoggedIn()) {
                 hidePayModal();
                 showLoginModal();
@@ -5666,34 +5362,36 @@
                     question_count: state.selectedPayPlan.count,
                     amount_fen: state.selectedPayPlan.price
                 });
-                payQrcodeArea.classList.remove('hidden');
-                if (result.data && result.data.code_url) {
-                    payStatusText.textContent = '请使用微信扫码支付';
+                var data = result.data || {};
+                var orderNo = data.order_no || '';
+                var codeUrl = data.code_url || '';
+                if (data.status === 'paid') {
+                    _showPaySuccess(state.selectedPayPlan.count, data.current_quota);
+                    await fetchUserInfo();
+                } else if (codeUrl && orderNo) {
+                    _showPayQrView(codeUrl, orderNo, state.selectedPayPlan.count);
                 } else {
-                    payStatusText.textContent = '订单已创建: ' + (result.data && result.data.order_no || '');
-                }
-                var orderNo = result.data && result.data.order_no;
-                if (orderNo) {
-                    state.payPollTimer = setInterval(async function() {
-                        try {
-                            var qr = await postJSON('/pay/query', { order_no: orderNo });
-                            if (qr.data && qr.data.status === 'paid') {
-                                clearInterval(state.payPollTimer);
-                                state.payPollTimer = null;
-                                payStatusText.textContent = '支付成功！额度已充值。';
-                                await fetchUserInfo();
-                                setTimeout(hidePayModal, 1500);
-                            }
-                        } catch (e) {
-                            console.error(e);
-                        }
-                    }, 3000);
+                    payError.textContent = '下单失败，请稍后重试';
                 }
             } catch (e) {
                 payError.textContent = e.message;
             }
             paySubmitBtn.disabled = false;
+        }
+
+        paySubmitBtn.addEventListener('click', _doCreateOrder);
+
+        payChangePlanBtn.addEventListener('click', function () {
+            _clearPayPoll();
+            _clearPayCountdown();
+            payQrcodeArea.classList.add('hidden');
+            paySuccessArea.classList.add('hidden');
+            payPlanSection.classList.remove('hidden');
+            payError.textContent = '';
+            paySubmitBtn.disabled = false;
         });
+
+        payQrcodeExpiredMask.addEventListener('click', _doCreateOrder);
 
         clearResumeState();
         setMode('text');
@@ -5707,6 +5405,20 @@
             fetchUserInfo();
         }
         syncStartCtaState();
+
+        // 检测服务端是否处于短信开发模式，切换登录框底部提示
+        (async function checkSmsDevMode() {
+            try {
+                var r = await fetch('/auth/sms-mode');
+                if (r.ok) {
+                    var j = await r.json();
+                    if (j && j.dev_mode) {
+                        document.getElementById('auth-dev-hint').classList.remove('hidden');
+                        document.getElementById('auth-prod-hint').classList.add('hidden');
+                    }
+                }
+            } catch (e) { /* 忽略，不影响正常使用 */ }
+        })();
     </script>
 </body>
 </html>
