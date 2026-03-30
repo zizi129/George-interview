@@ -50,3 +50,9 @@ rapidocr_onnxruntime
 
 PyJWT
 wechatpayv3
+
+# 短信验证码 SDK（按所用服务商安装其中一个）
+# 腾讯云短信：pip install tencentcloud-sdk-python-sms
+tencentcloud-sdk-python-sms
+# 阿里云短信：pip install alibabacloud-dysmsapi20170525
+# alibabacloud-dysmsapi20170525

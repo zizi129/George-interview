@@ -1,0 +1,98 @@
+# =============================================================================
+# Nginx 反向代理 + HTTPS 配置模板
+# 适用于：Ubuntu/Debian，域名已解析到服务器公网 IP
+#
+# 使用步骤：
+#   1. 把本文件复制到 /etc/nginx/sites-available/livetalking
+#   2. 将所有 your-domain.com 替换为实际域名
+#   3. 用 Certbot 申请 TLS 证书（步骤见下方）
+#   4. 启用站点并测试：
+#        ln -s /etc/nginx/sites-available/livetalking /etc/nginx/sites-enabled/
+#        nginx -t && systemctl reload nginx
+# =============================================================================
+
+# --------------------------------------------------------------------------
+# Certbot 申请 Let's Encrypt 证书（只需执行一次）：
+#
+#   apt install certbot python3-certbot-nginx -y
+#   certbot --nginx -d your-domain.com
+#
+# Certbot 会自动修改下面的 server 块，填入证书路径。
+# 证书每 90 天自动续期（certbot 安装时已配置 systemd timer）。
+# --------------------------------------------------------------------------
+
+# HTTP → HTTPS 跳转
+server {
+    listen 80;
+    listen [::]:80;
+    server_name your-domain.com;
+
+    # Let's Encrypt 验证（Certbot 自动管理，不要删除）
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS 主站
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name your-domain.com;
+
+    # ---------- TLS 证书（由 Certbot 填写）----------
+    # ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    # include /etc/letsencrypt/options-ssl-nginx.conf;
+    # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    # -----------------------------------------------
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+    # ---------- 客户端上传限制（简历文件等）----------
+    client_max_body_size 20M;
+
+    # ---------- 反向代理到 app.py（默认端口 8010）----------
+    location / {
+        proxy_pass http://127.0.0.1:8010;
+        proxy_http_version 1.1;
+
+        # WebSocket / WebRTC 信令支持
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_connect_timeout 10s;
+    }
+
+    # ---------- 微信支付回调（确保及时响应）----------
+    location /pay/notify {
+        proxy_pass http://127.0.0.1:8010;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+
+    # ---------- 访问日志 ----------
+    access_log /var/log/nginx/livetalking-access.log;
+    error_log  /var/log/nginx/livetalking-error.log warn;
+}

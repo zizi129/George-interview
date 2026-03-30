@@ -64,7 +64,6 @@ def _get_wechat_pay_client():
 
 
 async def pay_plans(request):
-    """返回可购买的套餐列表"""
     plans = []
     for count in sorted(PRICE_TABLE.keys()):
         fen = PRICE_TABLE[count]
@@ -103,10 +102,7 @@ async def create_pay_order(request):
                 logger.warning("微信支付下单失败，将使用开发模式: %s", e)
 
         if not code_url:
-            logger.info(
-                "微信支付未配置或下单失败，自动完成订单 %s（开发模式）",
-                order["order_no"],
-            )
+            logger.info("微信支付未配置或下单失败，自动完成订单 %s（开发模式）", order["order_no"])
             mark_order_paid(order["order_no"], "dev-auto-paid")
 
         quota = get_user_quota(user["id"])
@@ -216,24 +212,23 @@ async def pay_query(request):
 
 
 async def pay_orders(request):
-    """查询用户的订单历史"""
     try:
         user = get_user_from_request(request)
         if not user:
             return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
 
         orders = get_user_orders(user["id"], limit=20)
-        items = []
-        for o in orders:
-            items.append({
+        items = [
+            {
                 "order_no": o["order_no"],
                 "question_count": o["question_count"],
                 "amount_fen": o["amount_fen"],
                 "status": o["status"],
                 "created_at": o.get("created_at"),
                 "paid_at": o.get("paid_at"),
-            })
-
+            }
+            for o in orders
+        ]
         return web.json_response({"code": 0, "data": {"orders": items}})
     except Exception as e:
         logger.exception("pay_orders error")
@@ -241,26 +236,21 @@ async def pay_orders(request):
 
 
 async def _wechat_native_pay(order_no: str, amount_fen: int, question_count: int) -> str:
-    """调用微信 Native 支付接口获取二维码链接"""
     client = _get_wechat_pay_client()
-
     code, body = client.pay(
         description=f"AI模拟面试 {question_count} 次",
         out_trade_no=order_no,
         amount={"total": amount_fen, "currency": "CNY"},
     )
-
     if code in (200, 201) and isinstance(body, dict):
         url = body.get("code_url", "")
         if url:
             logger.info("微信 Native 支付下单成功: order=%s code_url=%s", order_no, url)
             return url
-
     raise RuntimeError(f"微信支付下单失败: code={code} body={body}")
 
 
 async def _wechat_query_order(order_no: str) -> str:
-    """主动查询微信支付订单状态，返回 trade_state 字符串"""
     try:
         client = _get_wechat_pay_client()
         code, body = client.query(out_trade_no=order_no)
@@ -274,11 +264,6 @@ async def _wechat_query_order(order_no: str) -> str:
 
 
 def _decrypt_and_parse_notify(body: str, headers: dict) -> str | None:
-    """解密并解析微信支付回调通知，提取 out_trade_no。
-
-    使用 wechatpayv3 SDK 进行签名验证和 AES-256-GCM 解密。
-    如果 SDK 不可用则回退到简单 JSON 解析（仅开发环境）。
-    """
     try:
         client = _get_wechat_pay_client()
         result = client.callback(headers=headers, body=body)
