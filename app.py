@@ -56,7 +56,14 @@ from copy import deepcopy
 from logger import logger
 import gc
 from env_utils import load_env_file
-from user_db import init_db, deduct_quota as db_deduct_quota
+from user_db import (
+    init_db,
+    deduct_quota as db_deduct_quota,
+    save_user_resume,
+    get_user_resume,
+    save_interview_report,
+    get_user_interview_reports,
+)
 from auth import setup_auth_routes, get_user_from_request
 from payment import setup_payment_routes
 from interviewer_config import DEFAULT_INTERVIEWER_ID, get_interviewer_option, get_interviewer_options
@@ -722,6 +729,37 @@ async def resume_upload(request):
     except Exception:
         logger.exception("resume_upload")
         return error_json("简历解析失败，请稍后重试。", status=500)
+
+
+async def resume_save(request):
+    try:
+        user = get_user_from_request(request)
+        if not user:
+            return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
+
+        params = await request.json()
+        profile = _sanitize_resume_profile(params.get("profile") or {})
+        file_name = str(params.get("file_name", "") or "").strip()[:200]
+        job_title = str(params.get("job_title", "") or "").strip()[:120]
+
+        save_user_resume(user["id"], file_name, profile, job_title)
+        return ok_json({"msg": "简历已保存"})
+    except Exception as e:
+        logger.exception("resume_save")
+        return error_json(str(e), status=500)
+
+
+async def resume_mine(request):
+    try:
+        user = get_user_from_request(request)
+        if not user:
+            return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
+
+        resume = get_user_resume(user["id"])
+        return ok_json({"data": resume})
+    except Exception as e:
+        logger.exception("resume_mine")
+        return error_json(str(e), status=500)
 
 
 async def asr_transcribe(request):
