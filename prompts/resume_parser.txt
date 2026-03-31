@@ -6,16 +6,21 @@
 3. question_seeds 生成 3 到 5 条，必须是面试官可以直接拿来追问的问题方向。
 4. risk_flags 生成 0 到 4 条，指出需要在面试中核验的不确定点，例如量化结果缺失、职责边界不清、项目描述偏空泛。
 5. resume_summary 控制在 80 到 220 字。
-6. 只输出 JSON，不要带代码块。
+6. education 与 work_experience 按时间倒序或正序均可，但同一份简历内保持一致；条数各自不超过 6 条。
+7. 只输出 JSON，不要带代码块。
 
 JSON 字段：
 - candidate_name: 字符串
 - current_title: 字符串
 - years_experience: 字符串
-- education_summary: 字符串
+- education_summary: 字符串（可放一段概括，与 education 数组互补）
+- basic_info: 对象，字段均可为空字符串
+  - phone, email, gender, birth_date, hometown, residence, desired_position, desired_location
+- education: 数组，每项对象字段 school, degree, major, start_date, end_date, detail（detail 为在校经历/课程/荣誉等长文本，可空）
+- work_experience: 数组，每项对象字段 company, title, type（全职/实习/兼职等，可空）, start_date, end_date, description
 - skills: 字符串数组
 - project_highlights: 字符串数组
-- work_highlights: 字符串数组
+- work_highlights: 字符串数组（与 work_experience 互补的短句，若已写清 work_experience 可为空数组）
 - question_seeds: 字符串数组
 - risk_flags: 字符串数组
 - resume_summary: 字符串

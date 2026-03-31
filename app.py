@@ -181,6 +181,61 @@ def _sanitize_string_list(value, limit: int) -> list[str]:
     return items
 
 
+def _sanitize_basic_info_block(raw) -> dict:
+    if not isinstance(raw, dict):
+        raw = {}
+    return {
+        "phone": str(raw.get("phone", "") or "").strip()[:40],
+        "email": str(raw.get("email", "") or "").strip()[:120],
+        "gender": str(raw.get("gender", "") or "").strip()[:20],
+        "birth_date": str(raw.get("birth_date", "") or "").strip()[:40],
+        "hometown": str(raw.get("hometown", "") or "").strip()[:80],
+        "residence": str(raw.get("residence", "") or "").strip()[:80],
+        "desired_position": str(raw.get("desired_position", "") or "").strip()[:120],
+        "desired_location": str(raw.get("desired_location", "") or "").strip()[:120],
+    }
+
+
+def _sanitize_education_block_list(value) -> list[dict]:
+    out: list[dict] = []
+    if not isinstance(value, list):
+        return out
+    for item in value[:6]:
+        if not isinstance(item, dict):
+            continue
+        out.append(
+            {
+                "school": str(item.get("school", "") or "").strip()[:120],
+                "degree": str(item.get("degree", "") or "").strip()[:60],
+                "major": str(item.get("major", "") or "").strip()[:120],
+                "start_date": str(item.get("start_date", "") or "").strip()[:40],
+                "end_date": str(item.get("end_date", "") or "").strip()[:40],
+                "detail": str(item.get("detail", "") or "").strip()[:800],
+            }
+        )
+    return out
+
+
+def _sanitize_work_experience_list(value) -> list[dict]:
+    out: list[dict] = []
+    if not isinstance(value, list):
+        return out
+    for item in value[:8]:
+        if not isinstance(item, dict):
+            continue
+        out.append(
+            {
+                "company": str(item.get("company", "") or "").strip()[:120],
+                "title": str(item.get("title", "") or item.get("position", "") or "").strip()[:120],
+                "type": str(item.get("type", "") or "").strip()[:40],
+                "start_date": str(item.get("start_date", "") or "").strip()[:40],
+                "end_date": str(item.get("end_date", "") or "").strip()[:40],
+                "description": str(item.get("description", "") or "").strip()[:1200],
+            }
+        )
+    return out
+
+
 def _sanitize_resume_profile(payload) -> dict:
     if not isinstance(payload, dict):
         return {}
@@ -190,6 +245,9 @@ def _sanitize_resume_profile(payload) -> dict:
         "current_title": str(payload.get("current_title", "") or "").strip()[:120],
         "years_experience": str(payload.get("years_experience", "") or "").strip()[:60],
         "education_summary": str(payload.get("education_summary", "") or "").strip()[:160],
+        "basic_info": _sanitize_basic_info_block(payload.get("basic_info")),
+        "education": _sanitize_education_block_list(payload.get("education")),
+        "work_experience": _sanitize_work_experience_list(payload.get("work_experience")),
         "skills": _sanitize_string_list(payload.get("skills"), 8),
         "project_highlights": _sanitize_string_list(payload.get("project_highlights"), 4),
         "work_highlights": _sanitize_string_list(payload.get("work_highlights"), 4),

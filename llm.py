@@ -91,19 +91,15 @@ DEFAULT_RESUME_PARSE_PROMPT = """你是一名技术招聘助手，需要先把�
 3. question_seeds 生成 3 到 5 条，必须是面试官可以直接拿来追问的问题方向。
 4. risk_flags 生成 0 到 4 条，指出需要在面试中核验的不确定点，例如量化结果缺失、职责边界不清、项目描述偏空泛。
 5. resume_summary 控制在 80 到 220 字。
-6. 只输出 JSON，不要带代码块。
+6. education / work_experience 各不超过 6 条。
+7. 只输出 JSON，不要带代码块。
 
 JSON 字段：
-- candidate_name: 字符串
-- current_title: 字符串
-- years_experience: 字符串
-- education_summary: 字符串
-- skills: 字符串数组
-- project_highlights: 字符串数组
-- work_highlights: 字符串数组
-- question_seeds: 字符串数组
-- risk_flags: 字符串数组
-- resume_summary: 字符串
+- candidate_name, current_title, years_experience, education_summary, resume_summary: 字符串
+- basic_info: { phone, email, gender, birth_date, hometown, residence, desired_position, desired_location }
+- education: [{ school, degree, major, start_date, end_date, detail }]
+- work_experience: [{ company, title, type, start_date, end_date, description }]
+- skills, project_highlights, work_highlights, question_seeds, risk_flags: 字符串数组
 """
 
 DEFAULT_OUTLINE_PROMPT = """你是一名技术面试设计助手，需要在面试开始前输出一份简洁、可执行、适合单人单次面试的大纲。
@@ -554,77 +550,9 @@ def _extract_text_points(raw_text: str, limit: int = 4) -> list[str]:
     return points
 
 
-def _get_role_template(job_title: str) -> dict[str, list[str]]:
-    normalized = _clean_text(job_title).lower()
-    if any(keyword in normalized for keyword in ("产品", "product", "pm")):
-        return {
-            "focus_areas": [
-                "用户问题判断与需求优先级",
-                "方案设计、范围控制与取舍依据",
-                "数据指标定义、验证与迭代",
-                "跨团队协作与推动落地",
-                "复盘与持续优化能力",
-            ],
-            "planned_questions": [
-                "请讲一个你主导或深度参与的产品功能，重点说明问题判断、方案选择和上线结果。",
-                "当需求价值、开发成本和上线时间冲突时，你通常如何做优先级决策？",
-                "你如何定义一个功能是否真的有效？请举例说明关键指标和验证方式。",
-                "请讲一次你和研发、设计或运营意见不一致的经历，你是如何推动达成共识的？",
-                "如果一个功能上线后效果不及预期，你通常如何定位问题并决定下一步动作？",
-            ],
-            "depth_checks": [
-                "是否能说清用户问题、约束条件和取舍理由",
-                "是否给出清晰的数据指标与验证方法",
-                "是否说明自己的实际角色与推动动作",
-                "是否具备复盘与迭代思路",
-            ],
-        }
-    if any(keyword in normalized for keyword in ("算法", "machine learning", "ml", "ai", "模型", "数据科学")):
-        return {
-            "focus_areas": [
-                "核心项目职责边界与实际贡献",
-                "模型或方案选型的取舍依据",
-                "训练、评估、上线与效果验证",
-                "问题定位、优化与复盘能力",
-                "工程化与协作落地能力",
-            ],
-            "planned_questions": [
-                "请讲一个你负责最深的项目，重点说明你的职责边界、关键动作和最终结果。",
-                "当时做过最重要的一次技术取舍是什么？你为什么这么选？",
-                "你如何定义和验证效果提升？请说明指标、实验或对照方式。",
-                "遇到效果不稳定或线上问题时，你通常如何排查和修正？",
-                "请讲一个你在工程落地或跨团队协作中真正推动过的改进点。",
-            ],
-            "depth_checks": [
-                "是否能说明职责边界和关键贡献",
-                "是否给出量化结果或验证证据",
-                "是否说清技术取舍和排查路径",
-                "是否兼顾工程落地与协作细节",
-            ],
-        }
-    if any(keyword in normalized for keyword in ("前端", "后端", "开发", "engineer", "工程师", "客户端", "测试")):
-        return {
-            "focus_areas": [
-                "核心项目职责与系统理解",
-                "技术方案设计与关键取舍",
-                "工程质量、稳定性与性能意识",
-                "问题定位、联调与复盘能力",
-                "协作效率与交付意识",
-            ],
-            "planned_questions": [
-                "请讲一个你负责最深的项目，重点说明你负责的模块、难点和落地结果。",
-                "当时最关键的一次技术方案取舍是什么？你为什么这么决定？",
-                "你如何保证代码质量、稳定性或性能？请举一个具体例子。",
-                "遇到线上故障或复杂 bug 时，你通常怎么定位和推进解决？",
-                "请讲一个你和上下游协作推进交付的经历，重点说明你的作用。",
-            ],
-            "depth_checks": [
-                "是否能讲清模块边界和设计取舍",
-                "是否具备质量、稳定性或性能意识",
-                "是否说明排障路径与验证方式",
-                "是否体现协作与交付能力",
-            ],
-        }
+def _default_interview_outline_template(job_title: str) -> dict[str, list[str]]:
+    """Fallback outline fields when LLM output is missing. Does not infer role from title keywords."""
+    title = _clean_text(job_title) or "当前岗位"
     return {
         "focus_areas": [
             "岗位核心能力与相关经历",
@@ -633,7 +561,7 @@ def _get_role_template(job_title: str) -> dict[str, list[str]]:
             "协作沟通与推进能力",
         ],
         "planned_questions": [
-            f"请讲一个和{job_title or '当前岗位'}最相关的经历，重点说明你的职责、做法和结果。",
+            f"请讲一个和{title}最相关的经历，重点说明你的职责、做法和结果。",
             "当遇到目标、资源或时间冲突时，你通常如何做判断和取舍？",
             "你如何判断一项工作是否做得好？请说明你的验证方式。",
             "请讲一个你遇到困难并最终解决的问题，重点说明过程和复盘。",
@@ -702,7 +630,7 @@ def _build_outline_source_text(context: dict[str, Any]) -> str:
 
 def _fallback_interview_outline(context: dict[str, Any]) -> dict[str, Any]:
     job_title = _clean_text(str(context.get("job_title", ""))) or "当前岗位"
-    role_template = _get_role_template(job_title)
+    role_template = _default_interview_outline_template(job_title)
     profile = context.get("resume_profile") or {}
     has_resume = _has_resume_context(context)
     has_jd = _has_job_requirements_context(context)
@@ -1158,6 +1086,91 @@ def _ensure_text_list(value: Any, fallback: list[str]) -> list[str]:
     return fallback
 
 
+def _normalize_basic_info_payload(raw: Any) -> dict[str, Any]:
+    base = raw if isinstance(raw, dict) else {}
+    return {
+        "phone": _clean_text(str(base.get("phone", "")))[:40],
+        "email": _clean_text(str(base.get("email", "")))[:120],
+        "gender": _clean_text(str(base.get("gender", "")))[:20],
+        "birth_date": _clean_text(str(base.get("birth_date", "")))[:40],
+        "hometown": _clean_text(str(base.get("hometown", "")))[:80],
+        "residence": _clean_text(str(base.get("residence", "")))[:80],
+        "desired_position": _clean_text(str(base.get("desired_position", "")))[:120],
+        "desired_location": _clean_text(str(base.get("desired_location", "")))[:120],
+    }
+
+
+def _normalize_education_list(value: Any, fallback_summary: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    if isinstance(value, list):
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            rows.append(
+                {
+                    "school": _clean_text(str(item.get("school", "")))[:120],
+                    "degree": _clean_text(str(item.get("degree", "")))[:60],
+                    "major": _clean_text(str(item.get("major", "")))[:120],
+                    "start_date": _clean_text(str(item.get("start_date", "")))[:40],
+                    "end_date": _clean_text(str(item.get("end_date", "")))[:40],
+                    "detail": _clean_text(str(item.get("detail", "")))[:800],
+                }
+            )
+            if len(rows) >= 6:
+                break
+    summary_fb = _clean_text(fallback_summary)
+    if not rows and summary_fb:
+        rows.append(
+            {
+                "school": "",
+                "degree": "",
+                "major": "",
+                "start_date": "",
+                "end_date": "",
+                "detail": summary_fb[:800],
+            }
+        )
+    return rows
+
+
+def _normalize_work_experience_list(value: Any, highlight_lines: list[str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    if isinstance(value, list):
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            title = _clean_text(str(item.get("title", "") or item.get("position", "")))[:120]
+            rows.append(
+                {
+                    "company": _clean_text(str(item.get("company", "")))[:120],
+                    "title": title,
+                    "type": _clean_text(str(item.get("type", "")))[:40],
+                    "start_date": _clean_text(str(item.get("start_date", "")))[:40],
+                    "end_date": _clean_text(str(item.get("end_date", "")))[:40],
+                    "description": _clean_text(str(item.get("description", "")))[:1200],
+                }
+            )
+            if len(rows) >= 8:
+                break
+    if not rows:
+        for line in highlight_lines[:6]:
+            text = _clean_text(str(line))
+            if text:
+                rows.append(
+                    {
+                        "company": "",
+                        "title": "",
+                        "type": "",
+                        "start_date": "",
+                        "end_date": "",
+                        "description": text[:1200],
+                    }
+                )
+            if len(rows) >= 8:
+                break
+    return rows
+
+
 def _fallback_resume_profile(resume_text: str, job_title: str) -> dict[str, Any]:
     lines = [line.strip() for line in (resume_text or "").splitlines() if line.strip()]
     summary_source = _clean_text(" ".join(lines[:10]) or resume_text)[:220]
@@ -1176,6 +1189,9 @@ def _fallback_resume_profile(resume_text: str, job_title: str) -> dict[str, Any]
         "current_title": "",
         "years_experience": "",
         "education_summary": education_summary,
+        "basic_info": _normalize_basic_info_payload({}),
+        "education": _normalize_education_list([], education_summary),
+        "work_experience": [],
         "skills": [],
         "project_highlights": lines[:3],
         "work_highlights": [],
@@ -1193,14 +1209,21 @@ def _normalize_resume_profile(raw: dict[str, Any], resume_text: str, job_title: 
     fallback = _fallback_resume_profile(resume_text, job_title)
     profile = raw if isinstance(raw, dict) else {}
     resume_summary = _clean_text(str(profile.get("resume_summary", ""))) or fallback["resume_summary"]
+    edu_summary = _clean_text(str(profile.get("education_summary", ""))) or fallback["education_summary"]
+    wh_raw = _ensure_text_list(profile.get("work_highlights"), fallback["work_highlights"])[:4]
+    education = _normalize_education_list(profile.get("education"), edu_summary)
+    work_xp = _normalize_work_experience_list(profile.get("work_experience"), wh_raw)
     return {
         "candidate_name": _clean_text(str(profile.get("candidate_name", ""))),
         "current_title": _clean_text(str(profile.get("current_title", ""))),
         "years_experience": _clean_text(str(profile.get("years_experience", ""))),
-        "education_summary": _clean_text(str(profile.get("education_summary", ""))) or fallback["education_summary"],
+        "education_summary": edu_summary,
+        "basic_info": _normalize_basic_info_payload(profile.get("basic_info")),
+        "education": education,
+        "work_experience": work_xp[:8],
         "skills": _ensure_text_list(profile.get("skills"), fallback["skills"])[:8],
         "project_highlights": _ensure_text_list(profile.get("project_highlights"), fallback["project_highlights"])[:4],
-        "work_highlights": _ensure_text_list(profile.get("work_highlights"), fallback["work_highlights"])[:4],
+        "work_highlights": wh_raw,
         "question_seeds": _ensure_text_list(profile.get("question_seeds"), fallback["question_seeds"])[:5],
         "risk_flags": _ensure_text_list(profile.get("risk_flags"), fallback["risk_flags"])[:4],
         "resume_summary": resume_summary[:220],
