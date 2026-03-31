@@ -925,9 +925,38 @@ async def interview_report(request):
         nerfreal = get_session_real(sessionid)
         nerfreal.flush_talk()
         report = await asyncio.get_event_loop().run_in_executor(None, generate_interview_report, nerfreal)
+
+        user = get_user_from_request(request)
+        if user and report:
+            ctx = nerfreal.get_interview_context()
+            try:
+                save_interview_report(
+                    user_id=user["id"],
+                    job_title=ctx.get("job_title", ""),
+                    interview_mode=ctx.get("interview_mode", "text"),
+                    score=int(report.get("score", 0)),
+                    recommendation=str(report.get("recommendation", "")),
+                    report_dict=report,
+                )
+            except Exception:
+                logger.exception("save_interview_report failed (non-fatal)")
+
         return ok_json({"data": report})
     except Exception as e:
         logger.exception('interview_report')
+        return error_json(str(e), status=500)
+
+
+async def interview_reports_list(request):
+    try:
+        user = get_user_from_request(request)
+        if not user:
+            return web.json_response({"code": -1, "msg": "请先登录"}, status=401)
+
+        reports = get_user_interview_reports(user["id"])
+        return ok_json({"data": {"reports": reports}})
+    except Exception as e:
+        logger.exception("interview_reports_list")
         return error_json(str(e), status=500)
 
 
@@ -1109,6 +1138,8 @@ if __name__ == '__main__':
     appasync.router.add_post("/human", human)
     appasync.router.add_post("/humanaudio", humanaudio)
     appasync.router.add_post("/resume/upload", resume_upload)
+    appasync.router.add_post("/resume/save", resume_save)
+    appasync.router.add_get("/resume/mine", resume_mine)
     appasync.router.add_post("/asr/transcribe", asr_transcribe)
     appasync.router.add_post("/set_audiotype", set_audiotype)
     appasync.router.add_post("/record", record)
@@ -1117,6 +1148,7 @@ if __name__ == '__main__':
     appasync.router.add_post("/interview/start", interview_start)
     appasync.router.add_post("/interview/state", interview_state)
     appasync.router.add_post("/interview/report", interview_report)
+    appasync.router.add_get("/interview/reports", interview_reports_list)
     appasync.router.add_post("/interview/reset", interview_reset)
     appasync.router.add_post("/interview/terminate", interview_terminate)
     appasync.router.add_static('/',path='web')

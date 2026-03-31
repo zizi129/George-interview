@@ -1611,6 +1611,98 @@ button, input, textarea { font: inherit; }
     margin-top: 18px;
 }
 
+.saved-resume-banner {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    font-size: 13px;
+    color: var(--muted-strong);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.saved-resume-banner .use-saved-btn {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 4px 12px;
+    white-space: nowrap;
+}
+
+.report-history-section {
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+}
+.report-history-section h3 { margin: 0 0 12px; font-size: 15px; }
+.report-history-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted-strong);
+    user-select: none;
+    margin-bottom: 10px;
+}
+.report-history-toggle::before {
+    content: '▶';
+    font-size: 10px;
+    transition: transform .2s;
+}
+.report-history-toggle.is-open::before { transform: rotate(90deg); }
+.report-history-list { display: none; flex-direction: column; gap: 10px; }
+.report-history-list.is-open { display: flex; }
+
+.history-card {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color .15s;
+}
+.history-card:hover { border-color: var(--accent); }
+.history-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.history-card-title { font-size: 13px; font-weight: 600; }
+.history-card-score {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+}
+.history-card-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+}
+.history-card-detail {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted-strong);
+}
+.history-card-detail.is-open { display: block; }
+.history-card-detail h4 { margin: 8px 0 4px; font-size: 12px; font-weight: 600; }
+.history-card-detail ul { margin: 0; padding-left: 16px; }
+.history-card-detail p { margin: 0 0 4px; }
+.history-empty {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    padding: 16px 0;
+}
+
 .report-save-row {
     margin-top: 12px;
     display: flex;
@@ -2132,7 +2224,10 @@ button, input, textarea { font: inherit; }
                             <button id="save-resume-btn" class="ghost-btn" type="button">保存简历</button>
                             <button id="resume-next-btn" class="primary-btn" type="button">下一步</button>
                         </div>
-                        <p class="save-hint resume-flow-hint">保存功能即将开放。进入面试前会自动带上当前编辑内容。</p>
+                        <div id="saved-resume-banner" class="saved-resume-banner hidden">
+                            <span id="saved-resume-banner-text">已有保存的简历，可直接使用</span>
+                            <button id="load-saved-resume-btn" class="ghost-btn use-saved-btn" type="button">加载已保存简历</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2348,12 +2443,15 @@ button, input, textarea { font: inherit; }
                         <div id="report-dimensions" class="dimension-grid"></div>
                     </div>
                     <div class="report-save-row">
-                        <button id="save-evaluation-btn" class="ghost-btn" type="button">保存评价（占位）</button>
-                        <span class="report-save-hint">未来将保存最近 5 次评价（岗位、分数、摘要等）；当前仅占位。</span>
+                        <span id="report-auto-saved-hint" class="report-save-hint">本次评价已自动保存</span>
                     </div>
                     <div class="report-actions">
                         <button id="continue-btn" class="primary-btn" type="button">继续下一轮</button>
                         <button id="terminate-btn" class="danger-btn" type="button">结束本轮</button>
+                    </div>
+                    <div class="report-history-section">
+                        <div id="report-history-toggle" class="report-history-toggle">历史面试记录</div>
+                        <div id="report-history-list" class="report-history-list"></div>
                     </div>
                 </div>
             </div>
@@ -3573,6 +3671,121 @@ button, input, textarea { font: inherit; }
             updateContextBadges();
         }
 
+        async function saveResumeToServer() {
+            if (!isLoggedIn() || !state.resumeProfile) return;
+            try {
+                await postJSON('/resume/save', {
+                    file_name: state.resumeFileName || '',
+                    profile: state.resumeProfile,
+                    job_title: jobTitleInput.value.trim()
+                });
+            } catch (e) {
+                console.warn('saveResumeToServer:', e.message);
+            }
+        }
+
+        async function fetchSavedResume() {
+            if (!isLoggedIn()) return;
+            try {
+                var result = await getJSON('/resume/mine');
+                var data = result.data;
+                if (!data || !data.profile) {
+                    document.getElementById('saved-resume-banner').classList.add('hidden');
+                    return;
+                }
+                state._serverResume = data;
+                if (!state.resumeProfile) {
+                    document.getElementById('saved-resume-banner').classList.remove('hidden');
+                    var text = '已有保存的简历';
+                    if (data.job_title) text += '（' + data.job_title + '）';
+                    document.getElementById('saved-resume-banner-text').textContent = text;
+                }
+            } catch (e) {
+                console.warn('fetchSavedResume:', e.message);
+            }
+        }
+
+        function applySavedResume() {
+            var data = state._serverResume;
+            if (!data || !data.profile) return;
+            state.resumeFileName = data.file_name || '已保存简历';
+            state.resumeProfile = normalizeResumeProfile(data.profile);
+            if (data.job_title && !jobTitleInput.value.trim()) {
+                jobTitleInput.value = data.job_title;
+                state.jobTitle = data.job_title;
+            }
+            renderResumeProfile(state.resumeProfile);
+            setResumeStatus('已加载', 'success');
+            updateResumeActions();
+            updateContextBadges();
+            document.getElementById('saved-resume-banner').classList.add('hidden');
+        }
+
+        async function fetchReportHistory() {
+            if (!isLoggedIn()) return;
+            try {
+                var result = await getJSON('/interview/reports');
+                var reports = (result.data && result.data.reports) || [];
+                renderReportHistory(reports);
+            } catch (e) {
+                console.warn('fetchReportHistory:', e.message);
+            }
+        }
+
+        function renderReportHistory(reports) {
+            var container = document.getElementById('report-history-list');
+            if (!container) return;
+            if (!reports || !reports.length) {
+                container.innerHTML = '<div class="history-empty">暂无历史面试记录</div>';
+                return;
+            }
+            var html = '';
+            reports.forEach(function(r) {
+                var report = r.report || {};
+                var ts = r.created_at ? new Date(r.created_at * 1000) : null;
+                var timeStr = ts ? (ts.getFullYear() + '-' + String(ts.getMonth()+1).padStart(2,'0') + '-' + String(ts.getDate()).padStart(2,'0') + ' ' + String(ts.getHours()).padStart(2,'0') + ':' + String(ts.getMinutes()).padStart(2,'0')) : '';
+                var modeLabel = r.interview_mode === 'voice' ? '语音' : '文字';
+
+                var detailParts = [];
+                if (report.summary) {
+                    detailParts.push('<p>' + escapeHtml(report.summary) + '</p>');
+                }
+                if (report.strengths && report.strengths.length) {
+                    detailParts.push('<h4>优势亮点</h4><ul>' + report.strengths.map(function(s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('') + '</ul>');
+                }
+                if (report.suggestions && report.suggestions.length) {
+                    detailParts.push('<h4>改进建议</h4><ul>' + report.suggestions.map(function(s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('') + '</ul>');
+                }
+
+                html += '<div class="history-card" data-report-id="' + (r.id || '') + '">'
+                    + '<div class="history-card-head">'
+                    + '<span class="history-card-title">' + escapeHtml(r.job_title || '未指定岗位') + '</span>'
+                    + '<span class="history-card-score">' + (r.score || 0) + ' 分</span>'
+                    + '</div>'
+                    + '<div class="history-card-meta">'
+                    + '<span>' + modeLabel + '面试</span>'
+                    + '<span>' + escapeHtml(r.recommendation || '') + '</span>'
+                    + '<span>' + timeStr + '</span>'
+                    + '</div>'
+                    + (detailParts.length ? '<div class="history-card-detail">' + detailParts.join('') + '</div>' : '')
+                    + '</div>';
+            });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.history-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    var detail = card.querySelector('.history-card-detail');
+                    if (detail) detail.classList.toggle('is-open');
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
         async function uploadResumeFile(file) {
             if (!file) {
                 return;
@@ -3616,6 +3829,10 @@ button, input, textarea { font: inherit; }
                 state.resumeProfile = normalizeResumeProfile(data.profile);
                 renderResumeProfile(state.resumeProfile);
                 setResumeStatus(state.resumeProfile ? '上传成功' : '需重传', state.resumeProfile ? 'success' : 'error');
+                if (state.resumeProfile) {
+                    saveResumeToServer();
+                    document.getElementById('saved-resume-banner').classList.add('hidden');
+                }
             } catch (error) {
                 const errorMessage = error.message || '简历解析失败';
                 const uploadFailurePattern = /10MB|^上传失败|服务器返回格式异常|服务器处理失败|请先登录/;
@@ -4006,6 +4223,7 @@ button, input, textarea { font: inherit; }
             await sleep(260);
             reportLoading.classList.add('hidden');
             reportContent.classList.remove('hidden');
+            fetchReportHistory();
         }
 
         function renderReport(report) {
@@ -4307,6 +4525,25 @@ button, input, textarea { font: inherit; }
                 return { code: -1, msg: '返回格式错误' };
             });
 
+            if (!response.ok || result.code !== 0) {
+                throw new Error(result.msg || ('请求失败: ' + response.status));
+            }
+            return result;
+        }
+
+        async function getJSON(url) {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+            if (response.status === 401) {
+                handleLogout();
+                showLoginModal();
+                throw new Error('请先登录');
+            }
+            const result = await response.json().catch(function() {
+                return { code: -1, msg: '返回格式错误' };
+            });
             if (!response.ok || result.code !== 0) {
                 throw new Error(result.msg || ('请求失败: ' + response.status));
             }
@@ -5300,9 +5537,20 @@ button, input, textarea { font: inherit; }
         document.getElementById('prep-back-btn').addEventListener('click', function() {
             showScreen('resume');
         });
-        document.getElementById('save-resume-btn').addEventListener('click', function() {
+        document.getElementById('save-resume-btn').addEventListener('click', async function() {
             syncResumeProfileFromForm();
-            window.alert('保存简历功能开发中：未来将把当前结构化简历写入账号（最多 5 份）。');
+            if (!state.resumeProfile) return;
+            if (!isLoggedIn()) { showLoginModal(); return; }
+            try {
+                await postJSON('/resume/save', {
+                    file_name: state.resumeFileName || '',
+                    profile: state.resumeProfile,
+                    job_title: jobTitleInput.value.trim()
+                });
+                setResumeStatus('已保存', 'success');
+            } catch (e) {
+                alert(e.message || '保存失败');
+            }
         });
         resumeAddEduBtn.addEventListener('click', function() {
             if (!state.resumeProfile) return;
@@ -5326,8 +5574,13 @@ button, input, textarea { font: inherit; }
         resumeWorkDelete.addEventListener('click', deleteResumeWorkModal);
         resumeStructuredForm.addEventListener('change', syncResumeProfileFromForm);
         resumeStructuredForm.addEventListener('input', syncResumeProfileFromForm);
-        document.getElementById('save-evaluation-btn').addEventListener('click', function() {
-            window.alert('保存评价功能开发中：未来将保存最近 5 次评价的摘要与分数。');
+        document.getElementById('load-saved-resume-btn').addEventListener('click', function() {
+            applySavedResume();
+        });
+
+        document.getElementById('report-history-toggle').addEventListener('click', function() {
+            this.classList.toggle('is-open');
+            document.getElementById('report-history-list').classList.toggle('is-open');
         });
 
         loginBtn.addEventListener('click', function() {
@@ -5391,6 +5644,7 @@ button, input, textarea { font: inherit; }
                 state.authUser = result.data.user;
                 updateAuthUI();
                 hideLoginModal();
+                fetchSavedResume();
             } catch (e) {
                 authError.textContent = e.message;
             }
@@ -5489,6 +5743,7 @@ button, input, textarea { font: inherit; }
         syncVoiceButtonState();
         if (isLoggedIn()) {
             fetchUserInfo();
+            fetchSavedResume();
         }
         syncStartCtaState();
         showScreen('landing');
