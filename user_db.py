@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import os
 import time
@@ -30,6 +31,28 @@ def init_db():
                     paid_quota INTEGER DEFAULT 0,
                     created_at REAL,
                     last_login_at REAL
+                );
+
+                CREATE TABLE IF NOT EXISTS resumes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER UNIQUE NOT NULL,
+                    file_name TEXT DEFAULT '',
+                    profile_json TEXT DEFAULT '{}',
+                    job_title TEXT DEFAULT '',
+                    updated_at REAL,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
+
+                CREATE TABLE IF NOT EXISTS interview_reports (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    job_title TEXT DEFAULT '',
+                    interview_mode TEXT DEFAULT 'text',
+                    score INTEGER DEFAULT 0,
+                    recommendation TEXT DEFAULT '',
+                    report_json TEXT DEFAULT '{}',
+                    created_at REAL,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                 );
 
                 CREATE TABLE IF NOT EXISTS orders (
@@ -205,5 +228,102 @@ def get_user_orders(user_id: int, limit: int = 20) -> list[dict]:
                 (user_id, limit),
             ).fetchall()
             return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+
+# ── 简历持久化 ────────────────────────────────────────────────────────────────
+
+def save_user_resume(user_id: int, file_name: str, profile_dict: dict, job_title: str = "") -> bool:
+    now = time.time()
+    profile_text = json.dumps(profile_dict, ensure_ascii=False)
+    with _db_lock:
+        conn = _get_conn()
+        try:
+            conn.execute(
+                "INSERT OR REPLACE INTO resumes (user_id, file_name, profile_json, job_title, updated_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (user_id, file_name or "", profile_text, job_title or "", now),
+            )
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+
+def get_user_resume(user_id: int) -> dict | None:
+    with _db_lock:
+        conn = _get_conn()
+        try:
+            row = conn.execute(
+                "SELECT * FROM resumes WHERE user_id = ?", (user_id,)
+            ).fetchone()
+            if not row:
+                return None
+            result = dict(row)
+            try:
+                result["profile"] = json.loads(result.pop("profile_json", "{}"))
+            except (json.JSONDecodeError, TypeError):
+                result["profile"] = {}
+            return result
+        finally:
+            conn.close()
+
+
+# ── 面试报告持久化 ─────────────────────────────────────────────────────────────
+
+MAX_REPORTS_PER_USER = 5
+
+
+def save_interview_report(
+    user_id: int,
+    job_title: str,
+    interview_mode: str,
+    score: int,
+    recommendation: str,
+    report_dict: dict,
+) -> int:
+    """保存面试报告并清理超出限额的旧记录，返回新记录 id。"""
+    now = time.time()
+    report_text = json.dumps(report_dict, ensure_ascii=False)
+    with _db_lock:
+        conn = _get_conn()
+        try:
+            cur = conn.execute(
+                "INSERT INTO interview_reports "
+                "(user_id, job_title, interview_mode, score, recommendation, report_json, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (user_id, job_title or "", interview_mode or "text",
+                 score, recommendation or "", report_text, now),
+            )
+            new_id = cur.lastrowid
+            conn.execute(
+                "DELETE FROM interview_reports WHERE user_id = ? AND id NOT IN "
+                "(SELECT id FROM interview_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT ?)",
+                (user_id, user_id, MAX_REPORTS_PER_USER),
+            )
+            conn.commit()
+            return new_id
+        finally:
+            conn.close()
+
+
+def get_user_interview_reports(user_id: int, limit: int = MAX_REPORTS_PER_USER) -> list[dict]:
+    with _db_lock:
+        conn = _get_conn()
+        try:
+            rows = conn.execute(
+                "SELECT * FROM interview_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+                (user_id, limit),
+            ).fetchall()
+            results = []
+            for row in rows:
+                r = dict(row)
+                try:
+                    r["report"] = json.loads(r.pop("report_json", "{}"))
+                except (json.JSONDecodeError, TypeError):
+                    r["report"] = {}
+                results.append(r)
+            return results
         finally:
             conn.close()
