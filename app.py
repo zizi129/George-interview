@@ -377,7 +377,7 @@ def _get_tencent_asr_config() -> dict:
 
 
 def _build_tencent_asr_headers(secret_id: str, secret_key: str, region: str, body_bytes: bytes) -> dict:
-    timestamp = int(datetime.utcnow().timestamp())
+    timestamp = int(time.time())
     date = datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d")
     canonical_headers = (
         "content-type:application/json; charset=utf-8\n"
