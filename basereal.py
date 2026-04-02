@@ -73,6 +73,23 @@ def build_default_outline_progress() -> dict:
     }
 
 
+def build_default_agent_state() -> dict:
+    # Start at technical phase (index 1): the opening greeting is already sent
+    # by interview_start, so the Agent's first job is technical questions.
+    return {
+        'current_phase': 'technical',
+        'current_phase_idx': 1,
+        'phase_turn_count': 0,
+        'phase_main_question_count': 0,
+        'current_card_id': '',
+        'follow_up_budget': 0,
+        'asked_card_ids': [],
+        'phase_history': [],
+        'evaluation_snapshot': {},
+        'is_first_turn': True,
+    }
+
+
 def build_default_interview_context() -> dict:
     return {
         'job_title': '',
@@ -86,6 +103,7 @@ def build_default_interview_context() -> dict:
         'interviewer_language_label': '中文',
         'interview_outline': build_default_outline(),
         'outline_progress': build_default_outline_progress(),
+        'agent_state': build_default_agent_state(),
         'interview_started_at': 0.0,
         'interview_finished': False,
         'interview_finish_reason': '',
@@ -281,6 +299,7 @@ class BaseReal:
         interviewer_language_label: str | None = None,
         interview_outline: dict | None = None,
         outline_progress: dict | None = None,
+        agent_state: dict | None = None,
         interview_started_at: float | None = None,
         interview_finished: bool | None = None,
         interview_finish_reason: str | None = None,
@@ -311,6 +330,8 @@ class BaseReal:
                 next_context['interview_outline'] = deepcopy(interview_outline) if isinstance(interview_outline, dict) else build_default_outline()
             if outline_progress is not None:
                 next_context['outline_progress'] = deepcopy(outline_progress) if isinstance(outline_progress, dict) else build_default_outline_progress()
+            if agent_state is not None:
+                next_context['agent_state'] = deepcopy(agent_state) if isinstance(agent_state, dict) else build_default_agent_state()
             if interview_started_at is not None:
                 try:
                     next_context['interview_started_at'] = max(float(interview_started_at), 0.0)

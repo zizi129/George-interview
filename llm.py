@@ -402,6 +402,206 @@ def llm_response(message: str, nerfreal: BaseReal) -> None:
             nerfreal.put_msg_txt(fallback, {"source": "llm_error"})
 
 
+_PHASE_LABELS = {
+    "opening": "开场",
+    "technical": "技术基础考察",
+    "project": "项目/简历深挖",
+    "stress": "压力追问",
+    "soft_skills": "个人素质与潜力",
+    "candidate_qa": "候选人反问环节",
+    "closing": "收尾",
+}
+
+# How many recent history turns to include per action type.
+# ask_main uses a short window so prior-topic context doesn't override the card.
+_HISTORY_LIMIT_BY_ACTION = {
+    "ask_main": 4,
+    "follow_up": 8,
+    "transition": 4,
+    "open": 6,
+    "invite_qa": 6,
+    "close": 6,
+}
+
+
+def _build_agent_system_prompt(instruction, nerfreal: BaseReal) -> str:
+    """Build a focused system prompt from an AgentInstruction.
+    The LLM acts as a speaking layer only: it articulates the given card and
+    does NOT invent its own questions or drift back to previous topics."""
+    context = nerfreal.get_interview_context()
+    interviewer_language = "en" if context.get("interviewer_language") == "en" else "zh"
+    interviewer_name = (
+        _clean_text(str(context.get("interviewer_name", "")))
+        or (DEFAULT_EN_INTERVIEWER_NAME if interviewer_language == "en" else DEFAULT_ZH_INTERVIEWER_NAME)
+    )
+    job_title = context.get("job_title") or "未指定岗位"
+    interview_mode = context.get("interview_mode", "text")
+    phase_label = _PHASE_LABELS.get(instruction.phase.value, instruction.phase.value)
+
+    parts = [
+        f"你是数字人面试官{interviewer_name}，正在主持{job_title}的{'语音' if interview_mode == 'voice' else '文字'}面试。",
+        f"当前面试阶段：【{phase_label}】",
+        "",
+        "铁则（必须遵守）：",
+        "1. 你只负责把【本轮指定的问题】用自然口语说出来，不得自行发明话题。",
+        "2. 每次回复控制在 2-3 句话，适合实时 TTS 播放，不要长篇。",
+        "3. 不要给答案、不要评价候选人表现、不要说教。",
+        "4. 当指令是【提出主问题】时，必须切断上一轮话题，直接进入新问题，不要总结之前的内容。",
+    ]
+
+    agent_state = context.get("agent_state", {})
+    is_first_turn = agent_state.get("is_first_turn", False)
+
+    if instruction.action == "open":
+        parts += [
+            "",
+            "【本轮动作：开场】",
+            "候选人刚做了自我介绍。用 1 句话表示收到，然后宣布进入面试正题。",
+        ]
+
+    elif instruction.action == "ask_main" and instruction.card:
+        if is_first_turn:
+            intro = "候选人已完成自我介绍，现在正式开始面试提问。"
+        else:
+            intro = "上一个话题已结束，现在切换到新的提问方向。"
+        parts += [
+            "",
+            f"【本轮动作：提出主问题】{intro}",
+            "⚠️ 不要再提上一轮的话题内容，直接开门见山地问下面这个问题。",
+            f"问题核心：{instruction.card.stem}",
+            f"参考问法（可改写表达方式，但核心考点不变）：{instruction.card.suggested_question}",
+        ]
+
+    elif instruction.action == "follow_up" and instruction.card:
+        parts += [
+            "",
+            "【本轮动作：追问】",
+            f"刚才你问的主问题是：{instruction.card.suggested_question}",
+            f"候选人回答了，但还需要追问以下方向：{instruction.follow_up_hint or instruction.card.stem}",
+            "针对候选人上一轮回答，直接追问上面的方向，不要重新介绍背景。",
+        ]
+
+    elif instruction.action == "transition":
+        next_phase = _PHASE_LABELS.get(instruction.context_summary, instruction.context_summary)
+        parts += [
+            "",
+            "【本轮动作：阶段转场】",
+            f"用一句话自然地结束当前话题，告知接下来进入：{next_phase or '下一个环节'}。",
+            "不要超过 2 句话。",
+        ]
+
+    elif instruction.action == "invite_qa":
+        parts += [
+            "",
+            "【本轮动作：邀请候选人提问】",
+            "面试官问答部分已接近尾声。礼貌地请候选人提出他想了解的问题，1-2 句话即可。",
+        ]
+
+    elif instruction.action == "close":
+        parts += [
+            "",
+            "【本轮动作：结束面试】",
+            "感谢候选人的时间和参与，告知面试结束，1-2 句话，礼貌自然。",
+        ]
+
+    # Only append JD/resume context for question-asking actions to avoid bloat
+    if instruction.action in ("ask_main", "follow_up"):
+        resume_prompt = _build_resume_prompt_suffix(context)
+        if resume_prompt:
+            parts += ["", resume_prompt]
+        jd_prompt = _build_job_requirements_prompt_suffix(context)
+        if jd_prompt:
+            parts += ["", jd_prompt]
+
+    return "\n".join(parts)
+
+
+def _build_agent_messages(instruction, nerfreal: BaseReal) -> list[dict[str, str]]:
+    """Assemble the messages list for agent_llm_response.
+
+    For ``ask_main`` (topic switch) we keep only the last few history turns
+    and inject an explicit separator so the LLM cannot drift back to the
+    previous topic.  For follow-ups we allow more context.
+    """
+    system_prompt = _build_agent_system_prompt(instruction, nerfreal)
+    messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
+
+    history_limit = _HISTORY_LIMIT_BY_ACTION.get(instruction.action, 8)
+    history = _merge_history_messages(nerfreal.get_recent_history(limit=history_limit))
+
+    if instruction.action == "ask_main" and history:
+        # Insert a hard topic-break marker so the LLM knows prior turns are
+        # from a different phase and must not be continued.
+        messages.append({
+            "role": "system",
+            "content": (
+                "===以上为前一阶段的对话记录，仅供参考===\n"
+                "从现在起，必须完全切换到【本轮指定的新问题】，"
+                "不得继续讨论上方任何话题。"
+            ),
+        })
+
+    messages.extend(history)
+    return messages
+
+
+def agent_llm_response(instruction, nerfreal: BaseReal, generation_id: int) -> None:
+    """LLM speaking layer driven by Agent instructions.
+    Unlike the original ``llm_response`` which decides everything, this
+    function only articulates what the Agent has already planned."""
+    start = time.perf_counter()
+
+    try:
+        if not nerfreal.is_generation_current(generation_id):
+            return
+
+        messages = _build_agent_messages(instruction, nerfreal)
+
+        client = _get_client()
+        init_done = time.perf_counter()
+        logger.info("agent_llm Time init: %ss", init_done - start)
+
+        completion = client.chat.completions.create(
+            model=os.getenv("LLM_MODEL", DEFAULT_MODEL),
+            messages=messages,
+            stream=True,
+            stream_options={"include_usage": True},
+        )
+
+        buffer = ""
+        first_chunk = True
+
+        for chunk in completion:
+            if not nerfreal.is_generation_current(generation_id):
+                logger.info("agent_llm generation cancelled: sessionid=%s", nerfreal.sessionid)
+                break
+            if not chunk.choices:
+                continue
+
+            delta = chunk.choices[0].delta.content or ""
+            if not delta:
+                continue
+
+            if first_chunk:
+                logger.info("agent_llm Time to first chunk: %ss", time.perf_counter() - start)
+                first_chunk = False
+
+            buffer += delta
+            ready_sentences, buffer = _split_ready_sentences(buffer)
+            for sentence in ready_sentences:
+                _emit_assistant_text(nerfreal, sentence, generation_id)
+
+        if nerfreal.is_generation_current(generation_id):
+            _emit_assistant_text(nerfreal, buffer, generation_id)
+            logger.info("agent_llm Time to last chunk: %ss", time.perf_counter() - start)
+    except Exception:
+        logger.exception("agent_llm_response")
+        if nerfreal.is_generation_current(generation_id):
+            fallback = "当前面试官连接异常，请稍后重试，或换个问题继续。"
+            nerfreal.add_interview_message("assistant", fallback, {"source": "agent_llm_error"})
+            nerfreal.put_msg_txt(fallback, {"source": "agent_llm_error"})
+
+
 def _extract_json_payload(text: str) -> dict[str, Any]:
     cleaned = (text or "").strip()
     if not cleaned:

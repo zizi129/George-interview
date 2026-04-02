@@ -1,0 +1,182 @@
+[
+    {
+        "id": "tech_transformer_arch",
+        "phase": "technical",
+        "tags": ["transformer", "attention", "architecture", "llm"],
+        "difficulty": "mid",
+        "priority": 10,
+        "stem": "Transformer 架构核心理解",
+        "suggested_question": "请讲一下你对 Transformer 架构的理解，特别是 self-attention 的计算过程和复杂度，以及为什么它适合处理序列任务。",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "计算复杂度", "question": "self-attention 的计算复杂度是多少？有哪些降低复杂度的方法？"},
+            {"trigger_if_missing": "位置编码", "question": "Transformer 中位置编码的作用是什么？RoPE 和 ALiBi 各有什么优缺点？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth"],
+            "good_signals": ["能说清 QKV 计算过程", "知道复杂度是 O(n²d)", "能对比不同位置编码"],
+            "red_flags": ["只说 attention 好用但不知道细节", "混淆 encoder 和 decoder"]
+        }
+    },
+    {
+        "id": "tech_pretraining",
+        "phase": "technical",
+        "tags": ["pretraining", "llm", "training", "data"],
+        "difficulty": "high",
+        "priority": 9,
+        "stem": "大模型预训练流程与关键问题",
+        "suggested_question": "如果让你从零开始预训练一个大语言模型，你会怎么规划数据、训练策略和评估方式？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "数据配比", "question": "不同类型数据（代码、网页、书籍）的配比你会怎么决定？"},
+            {"trigger_if_missing": "训练稳定性", "question": "训练过程中遇到 loss spike 你会怎么排查和处理？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "practical_experience"],
+            "good_signals": ["提到数据清洗和去重", "说清 tokenizer 选型考虑", "有实际训练经验"],
+            "red_flags": ["只停留在理论", "对数据规模没概念"]
+        }
+    },
+    {
+        "id": "tech_sft",
+        "phase": "technical",
+        "tags": ["sft", "fine-tuning", "instruction", "data_quality"],
+        "difficulty": "mid",
+        "priority": 9,
+        "stem": "SFT 指令微调的数据构建与质量控制",
+        "suggested_question": "你在做 SFT 时，训练数据是怎么构建的？如何定义和保障数据质量？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "质量评估指标", "question": "你们怎么判断一条指令数据是否合格？有没有和人工评估对齐过？"},
+            {"trigger_if_missing": "数据规模", "question": "数据量大概什么量级？你怎么判断数据够不够？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "practical_experience"],
+            "good_signals": ["有具体的数据清洗流程", "提到数据多样性", "给出量化数据规模"],
+            "red_flags": ["不区分预训练和 SFT 数据", "没有质量控制概念"]
+        }
+    },
+    {
+        "id": "tech_rlhf_alignment",
+        "phase": "technical",
+        "tags": ["rlhf", "dpo", "alignment", "reward_model"],
+        "difficulty": "high",
+        "priority": 8,
+        "stem": "RLHF / DPO 对齐方法与实践",
+        "suggested_question": "你在模型对齐方面用过哪些方法？RLHF 和 DPO 在实际使用中各有什么优劣？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "reward model", "question": "Reward Model 的训练数据是怎么来的？标注一致性怎么保证？"},
+            {"trigger_if_missing": "效果对比", "question": "你有没有做过 RLHF 和 DPO 的对比实验？结论是什么？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "practical_experience"],
+            "good_signals": ["能说清 PPO 训练流程", "知道 DPO 的优缺点", "有实际对比经验"],
+            "red_flags": ["只知道名词不知道流程", "没做过任何对齐实验"]
+        }
+    },
+    {
+        "id": "tech_inference_optimization",
+        "phase": "technical",
+        "tags": ["inference", "optimization", "kv_cache", "quantization", "vllm"],
+        "difficulty": "mid",
+        "priority": 8,
+        "stem": "大模型推理优化技术",
+        "suggested_question": "在大模型推理部署中，你用过哪些优化手段来降低延迟和成本？效果如何？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "量化方法", "question": "你用过哪些量化方案？GPTQ、AWQ、GGUF 它们的区别和适用场景是什么？"},
+            {"trigger_if_missing": "KV Cache", "question": "KV Cache 的内存占用你怎么估算？有什么办法减少它？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "system_thinking"],
+            "good_signals": ["提到具体框架如 vLLM/TGI", "能估算内存和吞吐", "有实际部署经验"],
+            "red_flags": ["不知道 KV Cache 是什么", "没有实际优化经验"]
+        }
+    },
+    {
+        "id": "tech_evaluation",
+        "phase": "technical",
+        "tags": ["evaluation", "benchmark", "metrics", "llm"],
+        "difficulty": "mid",
+        "priority": 7,
+        "stem": "大模型评估方法与指标体系",
+        "suggested_question": "你怎么评估一个大语言模型的好坏？用过哪些评测方法？离线指标和线上效果怎么对齐？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "人工评估", "question": "人工评估和自动指标之间的一致性你怎么保证？"},
+            {"trigger_if_missing": "线上验证", "question": "模型上线后你怎么做 A/B 测试？关注哪些指标？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "practical_experience"],
+            "good_signals": ["知道常用 benchmark", "有自定义评测经验", "能说清 offline 和 online 指标差异"],
+            "red_flags": ["只知道 perplexity 一个指标", "没有评测经验"]
+        }
+    },
+    {
+        "id": "tech_rag",
+        "phase": "technical",
+        "tags": ["rag", "retrieval", "embedding", "vector_db"],
+        "difficulty": "mid",
+        "priority": 7,
+        "stem": "RAG 系统的设计与优化",
+        "suggested_question": "你做过 RAG 相关的项目吗？从文档处理、向量化、检索到生成，整个链路你是怎么设计的？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "chunk策略", "question": "文档切分的策略你怎么选择？chunk size 对效果的影响你怎么评估？"},
+            {"trigger_if_missing": "检索质量", "question": "检索召回质量不好时你怎么排查？用过哪些 rerank 方法？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "system_thinking"],
+            "good_signals": ["有完整链路经验", "说清 embedding 模型选型", "提到 rerank 或 hybrid search"],
+            "red_flags": ["只用过最简单的 demo", "不知道如何评估检索质量"]
+        }
+    },
+    {
+        "id": "tech_lora_peft",
+        "phase": "technical",
+        "tags": ["lora", "peft", "fine-tuning", "efficiency"],
+        "difficulty": "mid",
+        "priority": 6,
+        "stem": "参数高效微调方法的选型与实践",
+        "suggested_question": "LoRA 和全参微调你在什么场景下怎么选择？LoRA 的 rank 怎么调？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "rank选择依据", "question": "LoRA 的 rank 设多大？你怎么判断这个值是合理的？"},
+            {"trigger_if_missing": "效果对比", "question": "相比全参微调，LoRA 在你的场景下效果差距有多大？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "practical_experience"],
+            "good_signals": ["能分析不同场景适用性", "有实际调参经验", "知道 QLoRA 等变体"],
+            "red_flags": ["只知道 LoRA 是什么但没用过"]
+        }
+    },
+    {
+        "id": "tech_hallucination",
+        "phase": "technical",
+        "tags": ["hallucination", "safety", "reliability", "llm"],
+        "difficulty": "mid",
+        "priority": 6,
+        "stem": "大模型幻觉问题的识别与缓解",
+        "suggested_question": "大模型的幻觉问题你在实际项目中遇到过吗？你用了哪些方法来缓解？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "检测方法", "question": "你怎么检测模型是否在产生幻觉？有没有自动化的方案？"},
+            {"trigger_if_missing": "量化指标", "question": "幻觉率你怎么度量？有没有具体的数字可以分享？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "problem_solving"],
+            "good_signals": ["有实际处理案例", "提到多种缓解策略", "能量化幻觉率"],
+            "red_flags": ["认为幻觉无法解决", "没有实际经验"]
+        }
+    },
+    {
+        "id": "tech_agent_system",
+        "phase": "technical",
+        "tags": ["agent", "tool_use", "planning", "llm"],
+        "difficulty": "high",
+        "priority": 5,
+        "stem": "LLM Agent / Tool Use 系统设计",
+        "suggested_question": "你做过基于大模型的 Agent 或 Tool Use 系统吗？架构是怎么设计的？遇到过什么关键挑战？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "错误处理", "question": "Agent 执行过程中出错或死循环你怎么处理？"},
+            {"trigger_if_missing": "规划能力", "question": "复杂任务的拆解和规划，你是让模型自主做还是有约束？怎么保证可靠性？"}
+        ],
+        "rubric": {
+            "evaluates": ["technical_depth", "system_thinking"],
+            "good_signals": ["有实际 Agent 项目", "说清工具调用的编排方式", "考虑过可靠性和兜底"],
+            "red_flags": ["只用过现成框架没深入理解", "没有错误处理意识"]
+        }
+    }
+]

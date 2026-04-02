@@ -1,0 +1,92 @@
+[
+    {
+        "id": "proj_core_project",
+        "phase": "project",
+        "tags": ["project", "ownership", "impact"],
+        "difficulty": "mid",
+        "priority": 10,
+        "stem": "核心项目的职责边界与实际贡献",
+        "suggested_question": "请讲一个你负责最深的项目，重点说明你的职责边界、关键技术决策和最终结果。",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "个人贡献", "question": "这个项目里哪些部分是你独立完成的？团队其他人的分工是什么？"},
+            {"trigger_if_missing": "量化结果", "question": "最终效果有没有量化指标？比如准确率、延迟、成本的具体数据？"}
+        ],
+        "rubric": {
+            "evaluates": ["practical_experience", "problem_solving"],
+            "good_signals": ["能说清个人边界", "有量化结果", "技术选型有依据"],
+            "red_flags": ["说不清自己具体做了什么", "无法给出任何指标"]
+        }
+    },
+    {
+        "id": "proj_tech_tradeoff",
+        "phase": "project",
+        "tags": ["tradeoff", "decision", "architecture"],
+        "difficulty": "mid",
+        "priority": 9,
+        "stem": "项目中最关键的技术取舍",
+        "suggested_question": "在这个项目里，你做过最重要的一次技术取舍是什么？当时有哪些备选方案？为什么最终选了这个？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "备选方案", "question": "当时还有哪些备选方案？你为什么没选它们？"},
+            {"trigger_if_missing": "事后评价", "question": "事后来看，这个决策是对的吗？如果重来你会怎么选？"}
+        ],
+        "rubric": {
+            "evaluates": ["system_thinking", "problem_solving"],
+            "good_signals": ["能列出多个方案并比较", "有清晰的决策依据", "能做事后复盘"],
+            "red_flags": ["只有一个方案没有对比", "说不出选择的理由"]
+        }
+    },
+    {
+        "id": "proj_failure_debug",
+        "phase": "project",
+        "tags": ["debugging", "failure", "retrospective"],
+        "difficulty": "mid",
+        "priority": 8,
+        "stem": "项目中遇到的关键问题与排障过程",
+        "suggested_question": "项目过程中遇到过最棘手的问题是什么？你是怎么一步步排查和解决的？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "排查方法", "question": "你当时的排查思路是什么？用了什么工具或方法定位问题？"},
+            {"trigger_if_missing": "复盘改进", "question": "这个问题解决后，你有没有做过复盘？采取了什么措施防止再次发生？"}
+        ],
+        "rubric": {
+            "evaluates": ["problem_solving", "practical_experience"],
+            "good_signals": ["有清晰的排查路径", "说出具体工具和方法", "做过事后复盘"],
+            "red_flags": ["只说遇到了问题但不讲过程", "没有总结和改进"]
+        }
+    },
+    {
+        "id": "proj_data_pipeline",
+        "phase": "project",
+        "tags": ["data", "pipeline", "engineering"],
+        "difficulty": "mid",
+        "priority": 7,
+        "stem": "数据处理流程与工程化实践",
+        "suggested_question": "你的项目里数据从采集到进入模型训练，整个流程是怎么设计的？遇到过什么工程上的挑战？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "数据规模", "question": "处理的数据量有多大？怎么保证处理效率？"},
+            {"trigger_if_missing": "数据质量", "question": "数据清洗的规则是谁定义的？怎么保证清洗后的数据质量？"}
+        ],
+        "rubric": {
+            "evaluates": ["practical_experience", "system_thinking"],
+            "good_signals": ["有完整流程设计", "考虑过效率和可靠性", "有具体数据规模"],
+            "red_flags": ["没有工程化意识", "只用过现成数据集"]
+        }
+    },
+    {
+        "id": "proj_online_deployment",
+        "phase": "project",
+        "tags": ["deployment", "online", "monitoring"],
+        "difficulty": "mid",
+        "priority": 7,
+        "stem": "模型上线部署与线上监控",
+        "suggested_question": "你的模型从训练完到真正上线服务，中间经历了哪些环节？上线后怎么监控模型表现？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "监控指标", "question": "线上监控你关注哪些指标？出现异常时怎么处理？"},
+            {"trigger_if_missing": "灰度上线", "question": "有没有做过灰度发布或 A/B 测试？怎么判断新模型比旧模型好？"}
+        ],
+        "rubric": {
+            "evaluates": ["practical_experience", "system_thinking"],
+            "good_signals": ["有完整上线流程", "关注线上指标", "有 A/B 经验"],
+            "red_flags": ["只做过训练没有部署经验", "不关注线上效果"]
+        }
+    }
+]
