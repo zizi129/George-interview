@@ -77,35 +77,6 @@ conda create -n nerfstream python=3.10 -y
 conda activate nerfstream
 ```
 
-### 4. 安装 PyTorch 与项目依赖
-
-先确认本机 CUDA 版本：
-
-```bash
-nvidia-smi
-```
-
-如果本机 CUDA 为 **12.4**，可直接执行：
-
-```bash
-conda activate nerfstream
-conda install pytorch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 pytorch-cuda=12.4 -c pytorch -c nvidia -y
-pip install -r requirements.txt
-```
-
-如果 CUDA 版本不是 12.4，请按 [PyTorch 官方安装说明](https://pytorch.org/get-started/previous-versions/) 选择匹配版本后，再执行：
-
-```bash
-conda activate nerfstream
-pip install -r requirements.txt
-```
-
-如果访问 Hugging Face 较慢，可在当前终端先执行：
-
-```bash
-export HF_ENDPOINT=https://hf-mirror.com
-```
-
 ---
 
 ## 资源下载与解压
@@ -115,7 +86,10 @@ export HF_ENDPOINT=https://hf-mirror.com
 ```bash
 git clone https://github.com/zizi129/George-interview.git
 cd George-interview
+git checkout dev
 ```
+
+> `dev` 是日常集成分支，所有最新功能都在这里。`main` 仅用于稳定发布，**不要在 `main` 上运行或开发**。
 
 ### 2. 下载 `upload.zip`
 
@@ -178,19 +152,92 @@ ls -l data/avatars/wav2lip_avatar_atlas5_en_v1
 
 ---
 
-## 启动与使用教程
+## 安装 PyTorch 与项目依赖
 
-### 每次启动前先执行
+先确认本机 CUDA 版本：
+
+```bash
+nvidia-smi
+```
+
+如果本机 CUDA 为 **12.4**，可直接执行：
+
+```bash
+conda activate nerfstream
+conda install pytorch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 pytorch-cuda=12.4 -c pytorch -c nvidia -y
+pip install -r requirements.txt
+```
+
+如果 CUDA 版本不是 12.4，请按 [PyTorch 官方安装说明](https://pytorch.org/get-started/previous-versions/) 选择匹配版本后，再执行：
+
+```bash
+conda activate nerfstream
+pip install -r requirements.txt
+```
+
+如果访问 Hugging Face 较慢，可在当前终端先执行：
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
+
+---
+
+## 启动与使用
+
+### 本地开发
+
+本地开发**不需要 Nginx、不需要 SSL 证书**，直接用 HTTP 访问即可。
+
+#### 1. 启动
 
 ```bash
 cd George-interview
 conda activate nerfstream
-sudo service nginx restart
+bash start.sh
 ```
 
-> 如果当前机器默认就是 `root`，可以直接执行 `service nginx restart`。
+#### 2. 访问
 
-### 首次启动 / 日常重启建议顺序
+浏览器打开：
+
+```
+http://localhost:<LISTEN_PORT>/interview.html
+```
+
+其中 `<LISTEN_PORT>` 为 `.env` 中 `LISTEN_PORT` 的值（`upload.zip` 解压后默认为 `5001`），例如：
+
+```
+http://localhost:5001/interview.html
+```
+
+> 注意：WebRTC 在非 HTTPS 环境下，部分浏览器会限制麦克风权限。本地开发时推荐使用 Chrome 并访问 `localhost`（Chrome 对 localhost 放行了麦克风权限）。
+
+#### 3. 停止
+
+```bash
+cd George-interview
+bash stop.sh
+```
+
+#### 4. 重启
+
+```bash
+cd George-interview
+conda activate nerfstream
+bash stop.sh || true
+bash start.sh
+```
+
+### 生产环境（当前线上服务器）
+
+生产环境通过 Nginx 反向代理提供 HTTPS 访问，端口映射关系为：
+
+```
+用户浏览器 → Nginx(:8010 SSL) → app.py(:5001)
+```
+
+每次启动：
 
 ```bash
 cd George-interview
@@ -200,9 +247,7 @@ sudo service nginx restart
 bash start.sh
 ```
 
-### 浏览器访问地址
-
-[`https://njuai-interview.top:8010/interview.html`](https://njuai-interview.top:8010/interview.html)
+线上访问地址：[`https://njuai-interview.top:8010/interview.html`](https://njuai-interview.top:8010/interview.html)
 
 ---
 
@@ -212,11 +257,12 @@ bash start.sh
 
 ```bash
 conda activate nerfstream
-python --version
-nvidia-smi
+python --version          # 应为 3.10.x
+nvidia-smi                # 确认 GPU 可用
 ls models/wav2lip.pth
 ls data/avatars/wav2lip_avatar_atlas
 ls data/avatars/wav2lip_avatar_atlas5_en_v1
+cat .env | head -5        # 确认 .env 存在且有内容
 ```
 
 如果 `conda activate nerfstream` 无法执行，通常是因为：
@@ -365,87 +411,6 @@ git push origin --delete feat-your-topic
 4. 在自己的功能分支开发、提交、推送
 5. 向 `dev` 发起 PR
 6. 合并完成后，删除本地和远程功能分支
-
----
-
-## 在新服务器上部署
-
-如果你在一台全新的服务器上部署，除了按上面的步骤完成**环境配置**、**资源下载与解压**之外，还需要配置 Nginx 反向代理和 HTTPS。
-
-### 1. 配置 `.env` 端口
-
-`.env` 中的 `LISTEN_PORT` 控制应用监听端口，改为 `5000`：
-
-```text
-LISTEN_PORT=5000
-```
-
-### 2. 安装 Nginx
-
-```bash
-sudo apt-get update
-sudo apt-get install -y nginx
-```
-
-### 3. 准备 SSL 证书
-
-将你域名的证书文件放到项目 `ssl/` 目录下：
-
-```text
-George-interview/ssl/
-├── your-domain.pem     # 证书
-└── your-domain.key     # 私钥
-```
-
-> 如果还没有证书，可通过云服务商（阿里云、腾讯云等）免费申请，或使用 [Let's Encrypt](https://letsencrypt.org/)。
-
-### 4. 配置 Nginx 反向代理
-
-创建配置文件，外部监听 `8011`，代理到内部 `5000`：
-
-```bash
-sudo tee /etc/nginx/sites-enabled/george-interview > /dev/null << 'EOF'
-server {
-    listen 8011 ssl;
-    server_name your-domain.com;
-
-    ssl_certificate     /path/to/George-interview/ssl/your-domain.pem;
-    ssl_certificate_key /path/to/George-interview/ssl/your-domain.key;
-
-    ssl_session_timeout 5m;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
-    ssl_prefer_server_ciphers on;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 600s;
-    }
-}
-EOF
-```
-
-> 请将 `your-domain.com` 和证书路径替换为你自己的实际值。
-
-### 5. 重启 Nginx 并启动服务
-
-```bash
-sudo nginx -t            # 检查配置是否正确
-sudo service nginx restart
-cd George-interview
-conda activate nerfstream
-bash start.sh
-```
-
-### 6. 访问
-
-浏览器打开 `https://your-domain.com:8011/interview.html`（替换为你自己的域名）。
 
 ---
 
