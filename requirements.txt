@@ -1,9 +1,9 @@
 torch-ema
 ninja
 trimesh
-opencv-python
+opencv-python-headless
 tensorboardX
-numpy 
+numpy
 pandas
 tqdm
 matplotlib
@@ -13,6 +13,8 @@ dearpygui
 packaging
 scipy
 scikit-learn
+Pillow
+more-itertools
 
 face_alignment
 python_speech_features
@@ -30,7 +32,6 @@ transformers==4.46.2
 edge_tts
 flask
 flask_sockets
-opencv-python-headless
 aiortc
 aiohttp_cors
 
