@@ -77,6 +77,7 @@ from llm import (
     llm_response,
     translate_job_title,
 )
+from interview_agent import interview_agent_process_turn
 from resume_utils import extract_resume_content
 load_env_file()
 init_db()
@@ -662,7 +663,7 @@ async def human(request):
                 text,
                 {'source': params.get('source', 'text'), 'mode': params.get('mode', 'chat')},
             )
-            asyncio.get_event_loop().run_in_executor(None, llm_response, text, nerfreal)
+            asyncio.get_event_loop().run_in_executor(None, interview_agent_process_turn, text, nerfreal)
         else:
             return error_json(f"unsupported human type: {input_type}")
 

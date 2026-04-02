@@ -1,0 +1,54 @@
+[
+    {
+        "id": "stress_contradiction",
+        "phase": "stress",
+        "tags": ["contradiction", "pressure", "depth"],
+        "difficulty": "high",
+        "priority": 10,
+        "stem": "追问前后矛盾点或含糊之处",
+        "suggested_question": "你刚才提到的这个方案，但之前你又说过另一个做法。这两个之间是不是有矛盾？能解释一下吗？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "解释", "question": "你能更具体地说明一下你当时实际的做法是哪个？"}
+        ],
+        "rubric": {
+            "evaluates": ["stress_resilience", "communication"],
+            "good_signals": ["能冷静解释", "承认并修正不一致", "补充具体细节"],
+            "red_flags": ["慌张回避", "坚持两个矛盾的说法", "情绪化反应"]
+        }
+    },
+    {
+        "id": "stress_extreme_scenario",
+        "phase": "stress",
+        "tags": ["extreme", "scenario", "edge_case"],
+        "difficulty": "high",
+        "priority": 9,
+        "stem": "极端场景下的判断力",
+        "suggested_question": "假设你的模型在上线后发现了一个严重的安全问题，但回滚会导致业务中断，你会怎么处理？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "优先级判断", "question": "安全和业务连续性你怎么权衡？你的决策依据是什么？"},
+            {"trigger_if_missing": "沟通策略", "question": "这种情况你会怎么和上级以及相关团队沟通？"}
+        ],
+        "rubric": {
+            "evaluates": ["stress_resilience", "problem_solving"],
+            "good_signals": ["有清晰的优先级判断", "考虑多方利益", "给出具体行动步骤"],
+            "red_flags": ["没有应急处理思路", "只考虑技术不考虑沟通"]
+        }
+    },
+    {
+        "id": "stress_knowledge_boundary",
+        "phase": "stress",
+        "tags": ["knowledge_gap", "honesty", "depth"],
+        "difficulty": "high",
+        "priority": 8,
+        "stem": "知识边界与诚实度测试",
+        "suggested_question": "关于你刚才提到的这个技术点，你能再深入讲讲底层原理吗？比如它在数学上是怎么推导的？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "诚实回答", "question": "如果这部分你不太确定，可以说明你了解到什么程度，以及你会怎么补充学习。"}
+        ],
+        "rubric": {
+            "evaluates": ["stress_resilience", "technical_depth"],
+            "good_signals": ["诚实承认不知道的部分", "说清已知边界", "有学习路径"],
+            "red_flags": ["胡编乱造", "无法区分自己知道和不知道的"]
+        }
+    }
+]

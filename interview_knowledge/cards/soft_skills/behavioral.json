@@ -1,0 +1,56 @@
+[
+    {
+        "id": "soft_collaboration",
+        "phase": "soft_skills",
+        "tags": ["collaboration", "teamwork", "communication"],
+        "difficulty": "mid",
+        "priority": 10,
+        "stem": "跨团队协作与推动落地能力",
+        "suggested_question": "请讲一个你和其他团队（比如工程、产品或业务）协作推进项目的经历。你在其中扮演了什么角色？遇到分歧时怎么推动？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "分歧处理", "question": "遇到意见不一致的时候，你具体是怎么做的？"},
+            {"trigger_if_missing": "个人作用", "question": "你在这个协作中最关键的推动动作是什么？"}
+        ],
+        "rubric": {
+            "evaluates": ["collaboration", "communication"],
+            "good_signals": ["有具体协作案例", "能说清自己的角色", "有分歧处理经验"],
+            "red_flags": ["只说自己独立完成", "把问题都归结到别人"]
+        }
+    },
+    {
+        "id": "soft_learning",
+        "phase": "soft_skills",
+        "tags": ["learning", "growth", "potential"],
+        "difficulty": "mid",
+        "priority": 9,
+        "stem": "学习能力与成长潜力",
+        "suggested_question": "你最近学过的最有价值的一项新技术或新知识是什么？你是怎么学习并应用到工作中的？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "学习方法", "question": "你一般怎么学习新技术？有什么固定的方法论？"},
+            {"trigger_if_missing": "应用效果", "question": "学完之后在实际工作中用上了吗？效果如何？"}
+        ],
+        "rubric": {
+            "evaluates": ["learning_potential"],
+            "good_signals": ["有持续学习习惯", "能把新知识落地", "有具体案例"],
+            "red_flags": ["很久没学新东西", "学习停留在看文章没有实践"]
+        }
+    },
+    {
+        "id": "soft_career_vision",
+        "phase": "soft_skills",
+        "tags": ["career", "vision", "motivation"],
+        "difficulty": "low",
+        "priority": 7,
+        "stem": "职业规划与动机",
+        "suggested_question": "你未来两到三年的职业发展方向是什么？为什么选择大模型方向？",
+        "follow_up_hooks": [
+            {"trigger_if_missing": "具体计划", "question": "你有没有具体的技术深入方向或者想尝试的领域？"},
+            {"trigger_if_missing": "岗位匹配", "question": "你觉得这个岗位和你的规划匹配度如何？"}
+        ],
+        "rubric": {
+            "evaluates": ["learning_potential", "communication"],
+            "good_signals": ["有清晰的方向", "和岗位方向匹配", "思考过自己的优势和短板"],
+            "red_flags": ["没有明确方向", "动机只是跟风"]
+        }
+    }
+]
